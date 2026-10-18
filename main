@@ -751,7 +751,7 @@ local function showAF()
         local info = Instance.new("TextLabel")
         info.Size = UDim2.new(1, -18, 0, 30)
         info.BackgroundTransparency = 1
-        info.Text = "⚡ Transfer Mode Active"
+        info.Text = "credits to n7kh in discord"
         info.TextColor3 = Color3.fromRGB(255, 160, 50)
         info.Font = Enum.Font.GothamBold
         info.TextSize = 13
