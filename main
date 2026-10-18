@@ -995,27 +995,33 @@ task.spawn(function()
 
                     local coinCount = countCoins()
 
-                    if not SAFE_STARTED then
-                        if coinCount == 0 then
-                            if not HIDING then
-                                HIDING = true
-                                root.CFrame = CFrame.new(0, 300, 0) * CFrame.Angles(math.rad(90), 0, 0)
-                                print("[Safe] Hiding...")
-                            end
-                            task.wait(0.4)
-                        else
-                            local startCoin = getRandomCoin()
-                            if startCoin then
-                                HIDING = false
-                                SAFE_STARTED = true
-                                local under = Vector3.new(startCoin.Position.X, startCoin.Position.Y - 5, startCoin.Position.Z)
-                                root.CFrame = CFrame.new(under) * CFrame.Angles(math.rad(90), 0, 0)
-                                print("[Safe] Coins detected - starting")
-                                task.wait(0.2)
-                            else
-                                task.wait(0.3)
-                            end
-                        end
+if not SAFE_STARTED then
+    if coinCount == 0 then
+        HIDING = true
+        setNoclip(true)
+        hum.PlatformStand = false
+        hum.Sit = false
+        hum.AutoRotate = false
+        root.Anchored = true
+
+        -- Keep holding the player here every time (prevents falling)
+        root.CFrame = CFrame.new(0, 300, 0) * CFrame.Angles(math.rad(90), 0, 0)
+
+        task.wait(0.3)
+    else
+        local startCoin = getRandomCoin()
+        if startCoin then
+            HIDING = false
+            SAFE_STARTED = true
+            local under = Vector3.new(startCoin.Position.X, startCoin.Position.Y - 5, startCoin.Position.Z)
+            root.Anchored = true
+            root.CFrame = CFrame.new(under) * CFrame.Angles(math.rad(90), 0, 0)
+            print("[Safe] Coins detected - starting")
+            task.wait(0.2)
+        else
+            task.wait(0.3)
+        end
+    end
                     else
                         local closest, dist = nil, math.huge
                         for _, obj in ipairs(workspace:GetDescendants()) do
