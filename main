@@ -937,6 +937,7 @@ if coinRemote then
     end)
 end
 -- farm section of loop
+-- Farm loop
 task.spawn(function()
     while true do
         if AF then
@@ -984,7 +985,6 @@ task.spawn(function()
                     end
 
                     task.wait(0.05)
-
                 else
                     root.Anchored = false
                     if not NOCLIP then setNoclip(false) end
