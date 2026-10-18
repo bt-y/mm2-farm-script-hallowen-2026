@@ -1123,22 +1123,3 @@ task.spawn(function()
         end
     end
 end)
--- Keep noclip active while Safe mode is running
-RS.Stepped:Connect(function()
-    if AF and MODE == "Safe" and lp.Character then
-        setNoclip(true)
-    elseif AF and MODE ~= "Safe" and lp.Character then
-        for _, p in ipairs(lp.Character:GetDescendants()) do
-            if p:IsA("BasePart") then p.CanCollide = false end
-        end
-    end
-end)
-
-lp.Idled:Connect(function()
-    if AK then
-        VU:Button2Down(Vector2.new(), workspace.CurrentCamera.CFrame)
-        task.wait(1)
-        VU:Button2Up(Vector2.new(), workspace.CurrentCamera.CFrame)
-    end
-end)
-
