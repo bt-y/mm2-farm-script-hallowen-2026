@@ -936,9 +936,7 @@ if coinRemote then
         end
     end)
 end
-
--- Farm loop(((((((((((((((((((((((((((((((((((((((((((((((((
--- Farm loop((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
+-- farm section of loop
 task.spawn(function()
     while true do
         if AF then
