@@ -938,66 +938,61 @@ if coinRemote then
     end)
 end
 
--- Farm loop
+-- Farm loop(((((((((((((((((((((((((((((((((((((((((((((((((
+-- Farm loop((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
 task.spawn(function()
     while true do
         if AF then
             local ch = lp.Character
             local root = ch and ch:FindFirstChild("HumanoidRootPart")
             local hum = ch and ch:FindFirstChild("Humanoid")
+
             if root and hum then
                 local murd = getMurderer()
                 local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
 
-if MODE == "Safe" then
-    setNoclip(true)
-    hum.PlatformStand = false
-    hum.Sit = false
-    hum.AutoRotate = false
-    root.Anchored = true
+                if MODE == "Safe" then
+                    setNoclip(true)
+                    hum.PlatformStand = false
+                    hum.Sit = false
+                    hum.AutoRotate = false
+                    root.Anchored = true
 
-    -- Keep flat orientation
-    local flat = CFrame.Angles(math.rad(90), 0, 0)
+                    local flat = CFrame.Angles(math.rad(90), 0, 0)
 
-    local closest, dist = nil, math.huge
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Name == "Coin_Server" and not VS[obj] then
-            local d = (obj.Position - root.Position).Magnitude
-            if d < dist and d < RG then
-                closest = obj
-                dist = d
-            end
-        end
-    end
-
-    if closest then
-        local moveTime = math.max(dist / SP, 0.12)
-        local tw = TS:Create(root, TweenInfo.new(moveTime, Enum.EasingStyle.Linear), {
-            CFrame = CFrame.new(closest.Position) * flat
-        })
-        tw:Play()
-        tw.Completed:Wait()
-
-        if closest and closest.Parent then
-            VS[closest] = true
-            CL = CL + 1
-            LT = tick()
-        end
-    end
-    task.wait(0.05)
-                        if countCoins() == 0 then
-                            SAFE_STARTED = false
-                            HIDING = false
+                    local closest, dist = nil, math.huge
+                    for _, obj in ipairs(workspace:GetDescendants()) do
+                        if obj:IsA("BasePart") and obj.Name == "Coin_Server" and not VS[obj] then
+                            local d = (obj.Position - root.Position).Magnitude
+                            if d < dist and d < RG then
+                                closest = obj
+                                dist = d
+                            end
                         end
-                        task.wait(0.05)
                     end
+
+                    if closest then
+                        local moveTime = math.max(dist / SP, 0.12)
+                        local tw = TS:Create(root, TweenInfo.new(moveTime, Enum.EasingStyle.Linear), {
+                            CFrame = CFrame.new(closest.Position) * flat
+                        })
+                        tw:Play()
+                        tw.Completed:Wait()
+
+                        if closest and closest.Parent then
+                            VS[closest] = true
+                            CL = CL + 1
+                            LT = tick()
+                        end
+                    end
+
+                    task.wait(0.05)
+
                 else
                     root.Anchored = false
                     if not NOCLIP then setNoclip(false) end
                     hum.PlatformStand = false
                     hum.AutoRotate = true
-                    HIDING = false
-                    SAFE_STARTED = false
 
                     local closest, dist = nil, math.huge
                     for _, obj in ipairs(workspace:GetDescendants()) do
@@ -1014,18 +1009,21 @@ if MODE == "Safe" then
                             end
                         end
                     end
+
                     if closest then
                         local tw = TS:Create(root, TweenInfo.new(dist / SP, Enum.EasingStyle.Linear), {
                             CFrame = CFrame.new(closest.Position)
                         })
                         tw:Play()
                         tw.Completed:Wait()
+
                         if closest and closest.Parent then
                             VS[closest] = true
                             CL = CL + 1
                             LT = tick()
                         end
                     end
+
                     task.wait(0.08)
                 end
             else
@@ -1036,9 +1034,11 @@ if MODE == "Safe" then
             local root = ch and ch:FindFirstChild("HumanoidRootPart")
             local hum = ch and ch:FindFirstChild("Humanoid")
             if root then root.Anchored = false end
-            if hum then hum.PlatformStand = false hum.AutoRotate = true end
+            if hum then
+                hum.PlatformStand = false
+                hum.AutoRotate = true
+            end
             if not NOCLIP then setNoclip(false) end
-            HIDING, SAFE_STARTED = false, false
             task.wait(0.5)
         end
     end
@@ -1047,10 +1047,6 @@ end)
 RS.Stepped:Connect(function()
     if NOCLIP or (AF and MODE == "Safe") then
         setNoclip(true)
-        if HIDING and lp.Character then
-            local root = lp.Character:FindFirstChild("HumanoidRootPart")
-            if root then root.Anchored = true end
-        end
     end
 end)
 
