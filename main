@@ -987,40 +987,46 @@ task.spawn(function()
                 local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
 
                 if MODE == "Safe" then
-                    -- Always noclip in Safe mode
+                    -- Noclip always
                     setNoclip(true)
 
-                    -- Step 1: Hide at start of round until coins appear
+                    -- Disable physics problems
+                    hum.PlatformStand = false
+                    hum.Sit = false
+                    hum.AutoRotate = false
+                    root.Anchored = true   -- prevents void + fling
+
                     local coinCount = countCoins()
+
+                    -- Hide until coins appear
                     if not SAFE_STARTED then
                         if coinCount == 0 then
                             if not HIDING then
-                                hidePlayer()
+                                HIDING = true
+                                root.CFrame = CFrame.new(0, 300, 0) * CFrame.Angles(math.rad(90), 0, 0)
+                                print("[Safe] Hiding...")
                             end
-                            task.wait(0.5)
+                            task.wait(0.4)
                         else
-                            -- Coins appeared → teleport to a random coin and start
                             local startCoin = getRandomCoin()
                             if startCoin then
                                 HIDING = false
                                 SAFE_STARTED = true
-                                local under = startCoin.Position - Vector3.new(0, 3, 0)
-                                root.CFrame = CFrame.new(under) * CFrame.Angles(math.rad(-90), 0, 0)
-                                print("[Safe] Coins detected - starting farm")
-                                task.wait(0.3)
+                                local under = startCoin.Position - Vector3.new(0, 5, 0)
+                                root.CFrame = CFrame.new(under) * CFrame.Angles(math.rad(90), 0, 0)
+                                print("[Safe] Coins detected - starting")
+                                task.wait(0.25)
                             else
-                                task.wait(0.4)
+                                task.wait(0.3)
                             end
                         end
                     else
-                        -- Step 2: Lie flat + collect with up/down
-                        lieFlat(root, hum)
-
+                        -- Find nearest coin
                         local closest, dist = nil, math.huge
                         for _, obj in ipairs(workspace:GetDescendants()) do
                             if obj:IsA("BasePart") and obj.Name == "Coin_Server" and not VS[obj] then
                                 local d = (obj.Position - root.Position).Magnitude
-                                if d < dist and d < 40 then
+                                if d < dist and d < 50 then
                                     closest = obj
                                     dist = d
                                 end
@@ -1028,18 +1034,18 @@ task.spawn(function()
                         end
 
                         if closest then
-                            -- Go under the coin first
-                            local under = closest.Position - Vector3.new(0, 3, 0)
-                            root.CFrame = CFrame.new(under) * CFrame.Angles(math.rad(-90), 0, 0)
-                            task.wait(0.12)
+                            -- Stay under map (5 studs below coin)
+                            local underPos = closest.Position - Vector3.new(0, 5, 0)
+                            root.CFrame = CFrame.new(underPos) * CFrame.Angles(math.rad(90), 0, 0)
+                            task.wait(0.1)
 
-                            -- Quick up to grab
-                            local grab = closest.Position + Vector3.new(0, 1.5, 0)
-                            root.CFrame = CFrame.new(grab) * CFrame.Angles(math.rad(-90), 0, 0)
-                            task.wait(0.18)
+                            -- Go up 7 studs to grab
+                            local grabPos = underPos + Vector3.new(0, 7, 0)
+                            root.CFrame = CFrame.new(grabPos) * CFrame.Angles(math.rad(90), 0, 0)
+                            task.wait(0.2)
 
-                            -- Back under
-                            root.CFrame = CFrame.new(under) * CFrame.Angles(math.rad(-90), 0, 0)
+                            -- Go back under
+                            root.CFrame = CFrame.new(underPos) * CFrame.Angles(math.rad(90), 0, 0)
 
                             VS[closest] = true
                             CL = CL + 1
@@ -1047,11 +1053,9 @@ task.spawn(function()
                             IS = false
                         end
 
-                        -- Slow collection speed
-                        local waitTime = math.clamp(0.8 - (SP / 200), 0.25, 0.9)
+                        local waitTime = math.clamp(0.75 - (SP / 250), 0.2, 0.85)
                         task.wait(waitTime)
 
-                        -- If no more coins, go hide again for next round
                         if countCoins() == 0 then
                             SAFE_STARTED = false
                             HIDING = false
@@ -1059,6 +1063,7 @@ task.spawn(function()
                     end
                 else
                     -- Normal / Strategy
+                    root.Anchored = false
                     setNoclip(false)
                     hum.PlatformStand = false
                     hum.AutoRotate = true
@@ -1104,7 +1109,9 @@ task.spawn(function()
             end
         else
             local ch = lp.Character
+            local root = ch and ch:FindFirstChild("HumanoidRootPart")
             local hum = ch and ch:FindFirstChild("Humanoid")
+            if root then root.Anchored = false end
             if hum then
                 hum.PlatformStand = false
                 hum.AutoRotate = true
@@ -1116,7 +1123,6 @@ task.spawn(function()
         end
     end
 end)
-
 -- Keep noclip active while Safe mode is running
 RS.Stepped:Connect(function()
     if AF and MODE == "Safe" and lp.Character then
