@@ -26,9 +26,9 @@ local WL = {
     ["677skibidiuse2"] = true,
     ["677skibidiuse3"] = true,
     ["677skibidiuse4"] = true,
-    ["677skibidiuse5"] = true,
+    ["veqiex"] = true,
     ["naimradio6"] = true,
-    ["veqiex"] = true
+    ["677skibidiuse5"] = true
 }
 
 local PASS = "677skibidi"
