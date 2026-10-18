@@ -787,7 +787,7 @@ local function showAF()
         local info = Instance.new("TextLabel")
         info.Size = UDim2.new(1, -18, 0, 24)
         info.BackgroundTransparency = 1
-        info.Text = "⚡ Transfer Mode Active"
+        info.Text = "creditss n7kh dc"
         info.TextColor3 = Color3.fromRGB(255, 160, 50)
         info.Font = Enum.Font.GothamBold
         info.TextSize = 12
@@ -949,72 +949,43 @@ task.spawn(function()
                 local murd = getMurderer()
                 local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
 
-                if MODE == "Safe" then
-                    setNoclip(true)
-                    hum.PlatformStand = false
-                    hum.Sit = false
-                    hum.AutoRotate = false
-                    root.Anchored = true
+if MODE == "Safe" then
+    setNoclip(true)
+    hum.PlatformStand = false
+    hum.Sit = false
+    hum.AutoRotate = false
+    root.Anchored = true
 
-                    local coinCount = countCoins()
-                    if not SAFE_STARTED then
-                        if coinCount == 0 then
-                            HIDING = true
-                            root.Anchored = true
-                            root.CFrame = CFrame.new(0, 300, 0) * CFrame.Angles(math.rad(90), 0, 0)
-                            task.wait(0.3)
-                        else
-                            local startCoin = getRandomCoin()
-                            if startCoin then
-                                HIDING = false
-                                SAFE_STARTED = true
-                                local under = Vector3.new(startCoin.Position.X, startCoin.Position.Y - 5, startCoin.Position.Z)
-                                root.CFrame = CFrame.new(under) * CFrame.Angles(math.rad(90), 0, 0)
-                                task.wait(0.2)
-                            else
-                                task.wait(0.3)
-                            end
-                        end
-                    else
-                        local closest, dist = nil, math.huge
-                        for _, obj in ipairs(workspace:GetDescendants()) do
-                            if obj:IsA("BasePart") and obj.Name == "Coin_Server" and not VS[obj] then
-                                local underPos = Vector3.new(obj.Position.X, obj.Position.Y - 5, obj.Position.Z)
-                                local d = (underPos - root.Position).Magnitude
-                                if d < dist and d < 80 then
-                                    closest = obj
-                                    dist = d
-                                end
-                            end
-                        end
-                        if closest then
-                            local underTarget = Vector3.new(closest.Position.X, closest.Position.Y - 5, closest.Position.Z)
-                            local currentDist = (underTarget - root.Position).Magnitude
-                            if currentDist > 3 then
-                                local moveTime = math.max(currentDist / SP, 0.15)
-                                local tw = TS:Create(root, TweenInfo.new(moveTime, Enum.EasingStyle.Linear), {
-                                    CFrame = CFrame.new(underTarget) * CFrame.Angles(math.rad(90), 0, 0)
-                                })
-                                tw:Play()
-                                tw.Completed:Wait()
-                            else
-                                local hitPos = Vector3.new(closest.Position.X, closest.Position.Y - 0.5, closest.Position.Z)
-                                local twUp = TS:Create(root, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                                    CFrame = CFrame.new(hitPos) * CFrame.Angles(math.rad(90), 0, 0)
-                                })
-                                twUp:Play()
-                                twUp.Completed:Wait()
-                                task.wait(0.08)
-                                local twDown = TS:Create(root, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-                                    CFrame = CFrame.new(underTarget) * CFrame.Angles(math.rad(90), 0, 0)
-                                })
-                                twDown:Play()
-                                twDown.Completed:Wait()
-                                VS[closest] = true
-                                CL = CL + 1
-                                LT = tick()
-                            end
-                        end
+    -- Keep flat orientation
+    local flat = CFrame.Angles(math.rad(90), 0, 0)
+
+    local closest, dist = nil, math.huge
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and obj.Name == "Coin_Server" and not VS[obj] then
+            local d = (obj.Position - root.Position).Magnitude
+            if d < dist and d < RG then
+                closest = obj
+                dist = d
+            end
+        end
+    end
+
+    if closest then
+        local moveTime = math.max(dist / SP, 0.12)
+        local tw = TS:Create(root, TweenInfo.new(moveTime, Enum.EasingStyle.Linear), {
+            CFrame = CFrame.new(closest.Position) * flat
+        })
+        tw:Play()
+        tw.Completed:Wait()
+
+        if closest and closest.Parent then
+            VS[closest] = true
+            CL = CL + 1
+            LT = tick()
+        end
+    end
+
+    task.wait(0.05)
                         if countCoins() == 0 then
                             SAFE_STARTED = false
                             HIDING = false
