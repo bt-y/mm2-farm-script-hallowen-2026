@@ -984,7 +984,6 @@ if MODE == "Safe" then
             LT = tick()
         end
     end
-
     task.wait(0.05)
                         if countCoins() == 0 then
                             SAFE_STARTED = false
