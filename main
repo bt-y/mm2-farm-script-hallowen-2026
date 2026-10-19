@@ -233,19 +233,20 @@ local function getMurderer()
 end
 
 -- =========================================================
--- (GET COINS - LOOSE FILTER + DEBUG)
+-- (GET COINS - ONLY IF TouchInterest EXISTS)
+-- Collected coins lose TouchInterest but part stays = GHOST
 -- =========================================================
 local function getCoins()
     local list = {}
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and not VS[obj] and obj.Parent then
-            local n = string.lower(obj.Name)
-            -- Accept Coin_Server or any name containing "coin"
-            if obj.Name == "Coin_Server" or n:find("coin") then
-                -- Skip tiny debris / fully invisible ghosts
-                if obj.Size.Magnitude >= 0.3 then
-                    table.insert(list, obj)
-                end
+        if obj:IsA("BasePart")
+            and obj.Name == "Coin_Server"
+            and obj.Parent
+            and not VS[obj]
+        then
+            -- Real coin still has TouchInterest
+            if obj:FindFirstChildWhichIsA("TouchTransmitter") or obj:FindFirstChild("TouchInterest") then
+                table.insert(list, obj)
             end
         end
     end
@@ -664,7 +665,7 @@ if coinRemote then
 end
 
 -- =========================================================
--- (FARM LOOP - WITH DEBUG)
+-- (FARM LOOP)
 -- =========================================================
 task.spawn(function()
     local lastPrint = 0
@@ -698,10 +699,9 @@ task.spawn(function()
                     end
                 end
 
-                -- Debug every 3 seconds
                 if tick() - lastPrint > 3 then
                     lastPrint = tick()
-                    print("[Farm] Coins found:", #allCoins, "| Candidates:", #candidates, "| Mode:", MODE)
+                    print("[Farm] Real coins:", #allCoins, "| Candidates:", #candidates)
                 end
 
                 local closest, dist = nil, math.huge
@@ -714,26 +714,25 @@ task.spawn(function()
                 end
 
                 if closest then
+                    -- Mark taken + skip if TouchInterest already gone
                     VS[closest] = true
-                    print("[Farm] Going to coin dist:", math.floor(dist))
-
-                    local t = math.max(dist / math.max(SP, 35), 0.05)
-                    local tw = TS:Create(root, TweenInfo.new(t, Enum.EasingStyle.Linear), {
-                        CFrame = CFrame.new(closest.Position + Vector3.new(0, 2.5, 0))
-                    })
-                    tw:Play()
-                    tw.Completed:Wait()
-
-                    CL = CL + 1
-                    task.wait(0.5)
+                    if not (closest:FindFirstChildWhichIsA("TouchTransmitter") or closest:FindFirstChild("TouchInterest")) then
+                        task.wait(0.1)
+                    else
+                        print("[Farm] Going dist:", math.floor(dist))
+                        local t = math.max(dist / math.max(SP, 35), 0.05)
+                        local tw = TS:Create(root, TweenInfo.new(t, Enum.EasingStyle.Linear), {
+                            CFrame = CFrame.new(closest.Position + Vector3.new(0, 2.5, 0))
+                        })
+                        tw:Play()
+                        tw.Completed:Wait()
+                        CL = CL + 1
+                        task.wait(0.5)
+                    end
                 else
                     task.wait(0.2)
                 end
             else
-                if tick() - lastPrint > 3 then
-                    lastPrint = tick()
-                    print("[Farm] No character/root")
-                end
                 task.wait(0.4)
             end
         else
@@ -756,4 +755,4 @@ lp.Idled:Connect(function()
 end)
 
 print("[mm2 coins farm] Loaded | " .. (isHidden and "HIDDEN" or "ORIGINAL"))
-print("[mm2 coins farm] Turn AutoFarm ON and check console for [Farm] messages")
+print("[mm2 coins farm] Only tracks coins that still have TouchInterest")
