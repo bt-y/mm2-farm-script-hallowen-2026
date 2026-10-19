@@ -660,44 +660,33 @@ task.spawn(function()
 
                 local murd = getMurderer()
                 local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
-
-                local closest, dist = nil, math.huge
-                for _, obj in ipairs(getCoins()) do
-                    local d = (obj.Position - root.Position).Magnitude
-                    if d < dist and d < RG then
-                        if MODE == "Strategy" and murdRoot then
-                            if (obj.Position - murdRoot.Position).Magnitude >= 45 then
-                                closest, dist = obj, d
-                            end
-                        else
-                            closest, dist = obj, d
-                        end
-                    end
-                end
-
-if closest then
-    local t = math.max(dist / math.max(SP, 35), 0.05)
-    local tw = TS:Create(root, TweenInfo.new(t, Enum.EasingStyle.Linear), {
-        CFrame = CFrame.new(closest.Position + Vector3.new(0, 2.5, 0))
-    })
-    tw:Play()
-    tw.Completed:Wait()
-                    if closest and closest.Parent then
-                        VS[closest] = true
-                        CL = CL + 1
-                    end
-                end
-                task.wait(0.06)
-            else
-                task.wait(0.4)
+local candidates = {}
+for _, obj in ipairs(getCoins()) do
+    local d = (obj.Position - root.Position).Magnitude
+    if d < RG then
+        if MODE == "Strategy" and murdRoot then
+            if (obj.Position - murdRoot.Position).Magnitude >= 45 then
+                table.insert(candidates, {part = obj, dist = d})
             end
         else
-            if not NOCLIP then setNoclip(false) end
-            task.wait(0.5)
+            table.insert(candidates, {part = obj, dist = d})
         end
     end
-end)
+end
 
+local closest = nil
+local dist = math.huge
+
+if #candidates > 0 then
+    -- Sort by distance
+    table.sort(candidates, function(a, b) return a.dist < b.dist end)
+
+    -- Pick randomly from the closest 5 (so alts spread out)
+    local pool = math.min(5, #candidates)
+    local pick = candidates[math.random(1, pool)]
+    closest = pick.part
+    dist = pick.dist
+end
 RS.Stepped:Connect(function()
     if NOCLIP or AF then setNoclip(true) end
 end)
