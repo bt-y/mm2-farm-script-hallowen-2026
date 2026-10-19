@@ -627,12 +627,6 @@ UIS.JumpRequest:Connect(function()
     end
 end)
 
-lp.CharacterAdded:Connect(function(ch)
-    task.wait(0.3)
-    local hum = ch:FindFirstChild("Humanoid")
-    if hum then hum.JumpPower = JP end
-    if NOCLIP then setNoclip(true) end
-end)
 local coinRemote = RPS:FindFirstChild("Remotes")
 if coinRemote then
     coinRemote = coinRemote:FindFirstChild("Gameplay")
