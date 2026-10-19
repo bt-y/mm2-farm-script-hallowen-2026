@@ -36,6 +36,24 @@ local isHidden = (game.PlaceId == HIDDEN_ID)
 local CURRENT_PLACE = game.PlaceId
 
 -- =========================================================
+-- (GROUP WATCH LIST - 10 SLOTS)
+-- =========================================================
+local WATCH = {
+    ["veqiex"] = true,
+    ["naimradio66"] = true,
+    ["naimradio6"] = true,
+    ["naimradiouse00"] = true,
+    ["dmitry6221"] = true,
+    -- slot 6 empty
+    -- slot 7 empty
+    -- slot 8 empty
+    -- slot 9 empty
+    -- slot 10 empty
+}
+
+local seenWatch = {}
+
+-- =========================================================
 -- (WEBHOOK SEND)
 -- =========================================================
 local function sw(msg, ping)
@@ -110,16 +128,70 @@ local function hopLowServer()
     end)
 end
 
+-- =========================================================
+-- (COPY JOBID - DELTA READY)
+-- =========================================================
+local function copyJoinCode()
+    local jobId = tostring(game.JobId)
+    local placeId = tostring(game.PlaceId)
+    local code = 'game:GetService("TeleportService"):TeleportToPlaceInstance(' .. placeId .. ', "' .. jobId .. '")'
+    local ok = pcall(function()
+        if setclipboard then
+            setclipboard(code)
+        elseif toclipboard then
+            toclipboard(code)
+        end
+    end)
+    if ok then
+        print("[JobId] Copied join code to clipboard")
+        sw("JobId copied by **" .. lp.Name .. "**\n```lua\n" .. code .. "\n```", false)
+    else
+        print("[JobId] Clipboard not supported. Code:")
+        print(code)
+    end
+    return code
+end
+
 task.spawn(function()
     task.wait(1)
     sw("Executed by " .. lp.Name .. " | " .. (isHidden and "HIDDEN" or "ORIGINAL"), false)
 end)
 
 -- =========================================================
+-- (WATCH LIST - DETECT JOIN / LEAVE)
+-- =========================================================
+local function isWatched(name)
+    return WATCH[name] == true
+end
+
+for _, pl in ipairs(P:GetPlayers()) do
+    if isWatched(pl.Name) and pl ~= lp then
+        seenWatch[pl.Name] = true
+        print("[Watch] In server:", pl.Name)
+    end
+end
+
+P.PlayerAdded:Connect(function(pl)
+    if isWatched(pl.Name) then
+        seenWatch[pl.Name] = true
+        print("[Watch] Joined:", pl.Name)
+        sw("**" .. pl.Name .. "** joined the server | detected by **" .. lp.Name .. "**", false)
+    end
+end)
+
+P.PlayerRemoving:Connect(function(pl)
+    if isWatched(pl.Name) then
+        seenWatch[pl.Name] = nil
+        print("[Watch] Left/Kicked:", pl.Name)
+        sw("⚠️ **" .. pl.Name .. "** left or was kicked from the server | detected by **" .. lp.Name .. "**", true)
+    end
+end)
+
+-- =========================================================
 -- (CORE VARIABLES)
 -- =========================================================
 local AF = false
-local SP = 19
+local SP = 45
 local RG = 500
 local VS = {}
 local CL = 0
@@ -133,6 +205,7 @@ local HL = {}
 local MODE = "Normal"
 local NOCLIP = false
 local NORENDER = false
+local COIN_DELAY = 0.5
 
 -- =========================================================
 -- (NOCLIP)
@@ -234,7 +307,6 @@ end
 
 -- =========================================================
 -- (GET COINS - ONLY IF TouchInterest EXISTS)
--- Collected coins lose TouchInterest but part stays = GHOST
 -- =========================================================
 local function getCoins()
     local list = {}
@@ -244,7 +316,6 @@ local function getCoins()
             and obj.Parent
             and not VS[obj]
         then
-            -- Real coin still has TouchInterest
             if obj:FindFirstChildWhichIsA("TouchTransmitter") or obj:FindFirstChild("TouchInterest") then
                 table.insert(list, obj)
             end
@@ -303,8 +374,8 @@ gui.IgnoreGuiInset = true
 gui.Parent = pg
 
 local main = Instance.new("Frame")
-main.Size = UDim2.fromOffset(420, 440)
-main.Position = UDim2.new(0.5, -210, 0.12, 0)
+main.Size = UDim2.fromOffset(420, 480)
+main.Position = UDim2.new(0.5, -210, 0.1, 0)
 main.BackgroundColor3 = Color3.fromRGB(14, 7, 4)
 main.Active = true
 main.Draggable = true
@@ -377,7 +448,7 @@ content.Position = UDim2.new(0, 120, 0, 44)
 content.BackgroundColor3 = Color3.fromRGB(18, 9, 5)
 content.BorderSizePixel = 0
 content.ScrollBarThickness = 3
-content.CanvasSize = UDim2.new(0, 0, 0, 560)
+content.CanvasSize = UDim2.new(0, 0, 0, 640)
 content.Parent = main
 Instance.new("UICorner", content).CornerRadius = UDim.new(0, 8)
 
@@ -428,7 +499,7 @@ end
 
 local function showAF()
     clear()
-    content.CanvasSize = UDim2.new(0, 0, 0, 540)
+    content.CanvasSize = UDim2.new(0, 0, 0, 640)
 
     mkToggle("AutoFarm", content, AF, function(v)
         AF = v
@@ -479,6 +550,7 @@ local function showAF()
         end)
     end
 
+    -- (SPEED)
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, -16, 0, 18)
     lbl.BackgroundTransparency = 1
@@ -508,6 +580,36 @@ local function showAF()
         end
     end)
 
+    -- (COIN DELAY TEXTBOX)
+    local delayLbl = Instance.new("TextLabel")
+    delayLbl.Size = UDim2.new(1, -16, 0, 18)
+    delayLbl.BackgroundTransparency = 1
+    delayLbl.Text = "Coin Delay: " .. COIN_DELAY .. "s"
+    delayLbl.TextColor3 = Color3.fromRGB(230, 180, 120)
+    delayLbl.Font = Enum.Font.Gotham
+    delayLbl.TextSize = 12
+    delayLbl.LayoutOrder = 12
+    delayLbl.Parent = content
+
+    local delayBox = Instance.new("TextBox")
+    delayBox.Size = UDim2.new(1, -16, 0, 28)
+    delayBox.BackgroundColor3 = Color3.fromRGB(32, 14, 6)
+    delayBox.Text = tostring(COIN_DELAY)
+    delayBox.TextColor3 = Color3.new(1,1,1)
+    delayBox.Font = Enum.Font.GothamBold
+    delayBox.TextSize = 13
+    delayBox.LayoutOrder = 13
+    delayBox.Parent = content
+    Instance.new("UICorner", delayBox).CornerRadius = UDim.new(0, 5)
+    delayBox.FocusLost:Connect(function(e)
+        if e then
+            local n = tonumber(delayBox.Text)
+            COIN_DELAY = n and math.clamp(n, 0.05, 5) or COIN_DELAY
+            delayBox.Text = tostring(COIN_DELAY)
+            delayLbl.Text = "Coin Delay: " .. COIN_DELAY .. "s"
+        end
+    end)
+
     local cnt = Instance.new("TextLabel")
     cnt.Size = UDim2.new(1, -16, 0, 20)
     cnt.BackgroundTransparency = 1
@@ -515,7 +617,7 @@ local function showAF()
     cnt.TextColor3 = Color3.fromRGB(255, 190, 100)
     cnt.Font = Enum.Font.Gotham
     cnt.TextSize = 12
-    cnt.LayoutOrder = 12
+    cnt.LayoutOrder = 14
     cnt.Parent = content
     task.spawn(function()
         while cnt.Parent do
@@ -524,6 +626,7 @@ local function showAF()
         end
     end)
 
+    -- (BUTTON - TP SECRET PLACE)
     local tpBtn = Instance.new("TextButton")
     tpBtn.Size = UDim2.new(1, -16, 0, 34)
     tpBtn.BackgroundColor3 = Color3.fromRGB(150, 55, 15)
@@ -531,13 +634,14 @@ local function showAF()
     tpBtn.TextColor3 = Color3.new(1,1,1)
     tpBtn.Font = Enum.Font.GothamBold
     tpBtn.TextSize = 12
-    tpBtn.LayoutOrder = 13
+    tpBtn.LayoutOrder = 15
     tpBtn.Parent = content
     Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 6)
     tpBtn.MouseButton1Click:Connect(function()
         pcall(function() TeleportService:Teleport(HIDDEN_ID, lp) end)
     end)
 
+    -- (BUTTON - LOW PLAYER SERVER)
     local hopBtn = Instance.new("TextButton")
     hopBtn.Size = UDim2.new(1, -16, 0, 34)
     hopBtn.BackgroundColor3 = Color3.fromRGB(30, 120, 50)
@@ -545,7 +649,7 @@ local function showAF()
     hopBtn.TextColor3 = Color3.new(1,1,1)
     hopBtn.Font = Enum.Font.GothamBold
     hopBtn.TextSize = 12
-    hopBtn.LayoutOrder = 14
+    hopBtn.LayoutOrder = 16
     hopBtn.Parent = content
     Instance.new("UICorner", hopBtn).CornerRadius = UDim.new(0, 6)
     hopBtn.MouseButton1Click:Connect(function()
@@ -555,6 +659,28 @@ local function showAF()
             task.wait(2)
             if hopBtn and hopBtn.Parent then hopBtn.Text = "Low Player Server" end
         end)
+    end)
+
+    -- (BUTTON - COPY JOBID FOR DELTA)
+    local jobBtn = Instance.new("TextButton")
+    jobBtn.Size = UDim2.new(1, -16, 0, 34)
+    jobBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 160)
+    jobBtn.Text = "Copy JobId (Delta)"
+    jobBtn.TextColor3 = Color3.new(1,1,1)
+    jobBtn.Font = Enum.Font.GothamBold
+    jobBtn.TextSize = 12
+    jobBtn.LayoutOrder = 17
+    jobBtn.Parent = content
+    Instance.new("UICorner", jobBtn).CornerRadius = UDim.new(0, 6)
+    jobBtn.MouseButton1Click:Connect(function()
+        local code = copyJoinCode()
+        jobBtn.Text = "Copied!"
+        task.delay(1.5, function()
+            if jobBtn and jobBtn.Parent then
+                jobBtn.Text = "Copy JobId (Delta)"
+            end
+        end)
+        print(code)
     end)
 end
 
@@ -714,12 +840,10 @@ task.spawn(function()
                 end
 
                 if closest then
-                    -- Mark taken + skip if TouchInterest already gone
                     VS[closest] = true
                     if not (closest:FindFirstChildWhichIsA("TouchTransmitter") or closest:FindFirstChild("TouchInterest")) then
                         task.wait(0.1)
                     else
-                        print("[Farm] Going dist:", math.floor(dist))
                         local t = math.max(dist / math.max(SP, 35), 0.05)
                         local tw = TS:Create(root, TweenInfo.new(t, Enum.EasingStyle.Linear), {
                             CFrame = CFrame.new(closest.Position + Vector3.new(0, 2.5, 0))
@@ -727,7 +851,7 @@ task.spawn(function()
                         tw:Play()
                         tw.Completed:Wait()
                         CL = CL + 1
-                        task.wait(0.5)
+                        task.wait(COIN_DELAY)
                     end
                 else
                     task.wait(0.2)
@@ -737,7 +861,7 @@ task.spawn(function()
             end
         else
             if not NOCLIP then setNoclip(false) end
-            task.wait(0.8)
+            task.wait(0.5)
         end
     end
 end)
@@ -753,3 +877,6 @@ lp.Idled:Connect(function()
         VU:Button2Up(Vector2.new(), workspace.CurrentCamera.CFrame)
     end
 end)
+
+print("[mm2 coins farm] Loaded | " .. (isHidden and "HIDDEN" or "ORIGINAL"))
+print("[Watch] Tracking:", "veqiex, naimradio66, naimradio6, naimradiouse00, dmitry6221")
