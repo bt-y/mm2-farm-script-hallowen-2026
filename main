@@ -119,7 +119,7 @@ end)
 -- (CORE VARIABLES)
 -- =========================================================
 local AF = false
-local SP = 45
+local SP = 19
 local RG = 500
 local VS = {}
 local CL = 0
@@ -737,7 +737,7 @@ task.spawn(function()
             end
         else
             if not NOCLIP then setNoclip(false) end
-            task.wait(0.5)
+            task.wait(0.8)
         end
     end
 end)
@@ -753,6 +753,3 @@ lp.Idled:Connect(function()
         VU:Button2Up(Vector2.new(), workspace.CurrentCamera.CFrame)
     end
 end)
-
-print("[mm2 coins farm] Loaded | " .. (isHidden and "HIDDEN" or "ORIGINAL"))
-print("[mm2 coins farm] Only tracks coins that still have TouchInterest")
