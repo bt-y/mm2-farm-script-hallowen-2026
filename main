@@ -675,13 +675,13 @@ task.spawn(function()
                     end
                 end
 
-                if closest then
-                    local t = math.max(dist / SP, 0.1)
-                    local tw = TS:Create(root, TweenInfo.new(t, Enum.EasingStyle.Linear), {
-                        CFrame = CFrame.new(closest.Position + Vector3.new(0, 2.5, 0))
-                    })
-                    tw:Play()
-                    tw.Completed:Wait()
+if closest then
+    local t = math.max(dist / math.max(SP, 35), 0.05)
+    local tw = TS:Create(root, TweenInfo.new(t, Enum.EasingStyle.Linear), {
+        CFrame = CFrame.new(closest.Position + Vector3.new(0, 2.5, 0))
+    })
+    tw:Play()
+    tw.Completed:Wait()
                     if closest and closest.Parent then
                         VS[closest] = true
                         CL = CL + 1
