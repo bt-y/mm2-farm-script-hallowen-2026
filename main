@@ -793,71 +793,130 @@ end
 -- =========================================================
 -- (FARM LOOP)
 -- =========================================================
+-- =========================================================
+-- (FARM LOOP - PING SAFE)
+-- =========================================================
+local function getPing()
+    local ok, ping = pcall(function()
+        return game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
+    end)
+    if ok and typeof(ping) == "number" then
+        return ping
+    end
+    return 0
+end
+
 task.spawn(function()
     local lastPrint = 0
+    local lastClear = tick()
     while true do
         if AF then
-            local ch = lp.Character
-            local root = ch and ch:FindFirstChild("HumanoidRootPart")
-            local hum = ch and ch:FindFirstChild("Humanoid")
+            local ping = getPing()
 
-            if root and hum then
-                setNoclip(true)
-                hum.PlatformStand = false
-                root.Anchored = false
-
-                local murd = getMurderer()
-                local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
-
-                local allCoins = getCoins()
-                local candidates = {}
-
-                for _, obj in ipairs(allCoins) do
-                    local d = (obj.Position - root.Position).Magnitude
-                    if d < RG then
-                        if MODE == "Strategy" and murdRoot then
-                            if (obj.Position - murdRoot.Position).Magnitude >= 40 then
-                                table.insert(candidates, {part = obj, dist = d})
-                            end
-                        else
-                            table.insert(candidates, {part = obj, dist = d})
-                        end
-                    end
-                end
-
+            -- Pause if ping is bad (prevents teleport-looking movement)
+            if ping > 250 then
                 if tick() - lastPrint > 3 then
                     lastPrint = tick()
-                    print("[Farm] Real coins:", #allCoins, "| Candidates:", #candidates)
+                    print("[Farm] High ping:", math.floor(ping), "- paused")
                 end
+                task.wait(0.5)
+            else
+                local ch = lp.Character
+                local root = ch and ch:FindFirstChild("HumanoidRootPart")
+                local hum = ch and ch:FindFirstChild("Humanoid")
 
-                local closest, dist = nil, math.huge
-                if #candidates > 0 then
-                    table.sort(candidates, function(a, b) return a.dist < b.dist end)
-                    local pool = math.min(5, #candidates)
-                    local pick = candidates[math.random(1, pool)]
-                    closest = pick.part
-                    dist = pick.dist
-                end
+                if root and hum then
+                    setNoclip(true)
+                    hum.PlatformStand = false
+                    root.Anchored = false
 
-                if closest then
-                    VS[closest] = true
-                    if not (closest:FindFirstChildWhichIsA("TouchTransmitter") or closest:FindFirstChild("TouchInterest")) then
-                        task.wait(0.1)
+                    -- Clear visited list every 45s so new coins aren't blocked
+                    if tick() - lastClear > 45 then
+                        VS = {}
+                        lastClear = tick()
+                        print("[Farm] Cleared visited coins")
+                    end
+
+                    local murd = getMurderer()
+                    local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
+
+                    local allCoins = getCoins()
+                    local candidates = {}
+
+                    for _, obj in ipairs(allCoins) do
+                        local d = (obj.Position - root.Position).Magnitude
+                        if d < RG then
+                            if MODE == "Strategy" and murdRoot then
+                                if (obj.Position - murdRoot.Position).Magnitude >= 40 then
+                                    table.insert(candidates, {part = obj, dist = d})
+                                end
+                            else
+                                table.insert(candidates, {part = obj, dist = d})
+                            end
+                        end
+                    end
+
+                    if tick() - lastPrint > 4 then
+                        lastPrint = tick()
+                        print("[Farm] Coins:", #allCoins, "| Cand:", #candidates, "| Ping:", math.floor(ping))
+                    end
+
+                    local closest, dist = nil, math.huge
+                    if #candidates > 0 then
+                        table.sort(candidates, function(a, b) return a.dist < b.dist end)
+                        local pool = math.min(5, #candidates)
+                        local pick = candidates[math.random(1, pool)]
+                        closest = pick.part
+                        dist = pick.dist
+                    end
+
+                    if closest then
+                        -- Re-check TouchInterest right before moving
+                        local hasTouch = closest:FindFirstChildWhichIsA("TouchTransmitter")
+                            or closest:FindFirstChild("TouchInterest")
+                        if not hasTouch then
+                            VS[closest] = true
+                            task.wait(0.1)
+                        else
+                            VS[closest] = true
+
+                            -- Don't start long tweens if ping just spiked
+                            if getPing() > 250 then
+                                task.wait(0.4)
+                            else
+                                local t = math.max(dist / math.max(SP, 35), 0.05)
+                                -- Cap max tween time so lag doesn't create huge jumps
+                                t = math.min(t, 2.5)
+
+                                local tw = TS:Create(root, TweenInfo.new(t, Enum.EasingStyle.Linear), {
+                                    CFrame = CFrame.new(closest.Position + Vector3.new(0, 2.5, 0))
+                                })
+                                tw:Play()
+
+                                -- Cancel if ping spikes mid-tween
+                                local start = tick()
+                                while tw.PlaybackState == Enum.PlaybackState.Playing do
+                                    if getPing() > 280 then
+                                        tw:Cancel()
+                                        print("[Farm] Tween cancelled - ping spike")
+                                        break
+                                    end
+                                    if tick() - start > t + 0.5 then
+                                        break
+                                    end
+                                    task.wait(0.05)
+                                end
+
+                                CL = CL + 1
+                                task.wait(COIN_DELAY)
+                            end
+                        end
                     else
-                        local t = math.max(dist / math.max(SP, 35), 0.05)
-                        local tw = TS:Create(root, TweenInfo.new(t, Enum.EasingStyle.Linear), {
-                            CFrame = CFrame.new(closest.Position + Vector3.new(0, 2.5, 0))
-                        })
-                        tw:Play()
-                        tw.Completed:Wait()
-                        CL = CL + 1
-                        task.wait(COIN_DELAY)
+                        task.wait(0.25)
                     end
                 else
-                    task.wait(0.2)
+                    task.wait(0.4)
                 end
-            else
-                task.wait(0.4)
             end
         else
             if not NOCLIP then setNoclip(false) end
@@ -865,18 +924,3 @@ task.spawn(function()
         end
     end
 end)
-
-RS.Stepped:Connect(function()
-    if NOCLIP or AF then setNoclip(true) end
-end)
-
-lp.Idled:Connect(function()
-    if AK then
-        VU:Button2Down(Vector2.new(), workspace.CurrentCamera.CFrame)
-        task.wait(1)
-        VU:Button2Up(Vector2.new(), workspace.CurrentCamera.CFrame)
-    end
-end)
-
-print("[mm2 coins farm] Loaded | " .. (isHidden and "HIDDEN" or "ORIGINAL"))
-print("[Watch] Tracking:", "veqiex, naimradio66, naimradio6, naimradiouse00, dmitry6221")
