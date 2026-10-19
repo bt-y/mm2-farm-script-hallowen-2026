@@ -24,6 +24,7 @@ local WU = gw()
 local ORIG_ID = 142823291
 local HIDDEN_ID = 80469437126309
 local isHidden = (game.PlaceId == HIDDEN_ID)
+local CURRENT_PLACE = game.PlaceId
 
 local function sw(msg, ping)
     local body = ping and ("@everyone\n" .. msg) or msg
@@ -38,6 +39,70 @@ local function sw(msg, ping)
                 Body = HS:JSONEncode(data)
             })
         end
+    end)
+end
+
+local function httpGet(url)
+    local req = request or (syn and syn.request) or (http and http.request)
+    if not req then return nil end
+    local ok, res = pcall(function()
+        return req({
+            Url = url,
+            Method = "GET"
+        })
+    end)
+    if ok and res and res.Body then
+        return res.Body
+    end
+    return nil
+end
+
+local function findLowServer(placeId, maxPlayers)
+    maxPlayers = maxPlayers or 2
+    local url = "https://games.roblox.com/v1/games/" .. tostring(placeId) .. "/servers/Public?sortOrder=Asc&limit=100"
+    local body = httpGet(url)
+    if not body then
+        print("[Server] Failed to fetch servers")
+        return nil
+    end
+    local ok, data = pcall(function()
+        return HS:JSONDecode(body)
+    end)
+    if not ok or not data or not data.data then
+        print("[Server] Bad response")
+        return nil
+    end
+    for _, server in ipairs(data.data) do
+        local playing = server.playing or 0
+        local max = server.maxPlayers or 12
+        if playing >= 1 and playing <= maxPlayers and server.id then
+            return server.id, playing
+        end
+    end
+    -- fallback: any server with lowest players
+    local bestId, bestCount = nil, 999
+    for _, server in ipairs(data.data) do
+        local playing = server.playing or 0
+        if playing < bestCount and server.id then
+            bestCount = playing
+            bestId = server.id
+        end
+    end
+    return bestId, bestCount
+end
+
+local function hopLowServer()
+    print("[Server] Searching low player server...")
+    local jobId, count = findLowServer(CURRENT_PLACE, 2)
+    if not jobId then
+        print("[Server] No low server found")
+        sw("⚠️ No low player server found | **" .. lp.Name .. "**", false)
+        return
+    end
+    print("[Server] Found server with", count, "players | JobId:", jobId)
+    sw("🔄 Hopping to **" .. tostring(count) .. "** player server | **" .. lp.Name .. "**", false)
+    pcall(function()
+        TeleportService:TeleportToPlaceInstance(CURRENT_PLACE, jobId, lp)
     end)
 end
 
@@ -70,13 +135,11 @@ local function epm()
         LG.ShadowSoftness = 0
 
         for _, v in ipairs(workspace:GetDescendants()) do
-            -- Particles / effects
             if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam")
                 or v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
                 pcall(function() v.Enabled = false end)
             end
 
-            -- Unnecessary meshes (keep character + coins)
             if v:IsA("MeshPart") then
                 local keep = v:IsDescendantOf(lp.Character)
                     or v.Name == "Coin_Server"
@@ -92,10 +155,8 @@ local function epm()
                 end
             end
 
-            -- SpecialMesh
             if v:IsA("SpecialMesh") then
-                local keep = v:IsDescendantOf(lp.Character)
-                if not keep then
+                if not v:IsDescendantOf(lp.Character) then
                     pcall(function()
                         v.TextureId = ""
                         v.Scale = Vector3.new(0.01, 0.01, 0.01)
@@ -103,19 +164,16 @@ local function epm()
                 end
             end
 
-            -- Decals / textures
             if v:IsA("Decal") or v:IsA("Texture") then
                 if not v:IsDescendantOf(lp.Character) then
                     pcall(function() v.Transparency = 1 end)
                 end
             end
 
-            -- Lights
             if v:IsA("PointLight") or v:IsA("SpotLight") or v:IsA("SurfaceLight") then
                 pcall(function() v.Enabled = false end)
             end
 
-            -- SurfaceAppearance / materials that cost FPS
             if v:IsA("SurfaceAppearance") then
                 pcall(function() v:Destroy() end)
             end
@@ -220,7 +278,6 @@ task.spawn(function()
     end
 end)
 
--- GUI
 local gui = Instance.new("ScreenGui")
 gui.Name = "mm2FarmLight"
 gui.ResetOnSpawn = false
@@ -228,8 +285,8 @@ gui.IgnoreGuiInset = true
 gui.Parent = pg
 
 local main = Instance.new("Frame")
-main.Size = UDim2.fromOffset(420, 420)
-main.Position = UDim2.new(0.5, -210, 0.14, 0)
+main.Size = UDim2.fromOffset(420, 440)
+main.Position = UDim2.new(0.5, -210, 0.12, 0)
 main.BackgroundColor3 = Color3.fromRGB(14, 7, 4)
 main.Active = true
 main.Draggable = true
@@ -302,7 +359,7 @@ content.Position = UDim2.new(0, 120, 0, 44)
 content.BackgroundColor3 = Color3.fromRGB(18, 9, 5)
 content.BorderSizePixel = 0
 content.ScrollBarThickness = 3
-content.CanvasSize = UDim2.new(0, 0, 0, 520)
+content.CanvasSize = UDim2.new(0, 0, 0, 560)
 content.Parent = main
 Instance.new("UICorner", content).CornerRadius = UDim.new(0, 8)
 
@@ -353,7 +410,7 @@ end
 
 local function showAF()
     clear()
-    content.CanvasSize = UDim2.new(0, 0, 0, 500)
+    content.CanvasSize = UDim2.new(0, 0, 0, 540)
 
     mkToggle("AutoFarm", content, AF, function(v)
         AF = v
@@ -443,7 +500,6 @@ local function showAF()
         end
     end)
 
-    -- TP Secret button
     local tpBtn = Instance.new("TextButton")
     tpBtn.Size = UDim2.new(1, -16, 0, 34)
     tpBtn.BackgroundColor3 = Color3.fromRGB(150, 55, 15)
@@ -459,6 +515,27 @@ local function showAF()
             TeleportService:Teleport(HIDDEN_ID, lp)
         end)
         sw("Teleporting to secret place by **" .. lp.Name .. "**", false)
+    end)
+
+    local hopBtn = Instance.new("TextButton")
+    hopBtn.Size = UDim2.new(1, -16, 0, 34)
+    hopBtn.BackgroundColor3 = Color3.fromRGB(30, 120, 50)
+    hopBtn.Text = "Low Player Server"
+    hopBtn.TextColor3 = Color3.new(1,1,1)
+    hopBtn.Font = Enum.Font.GothamBold
+    hopBtn.TextSize = 12
+    hopBtn.LayoutOrder = 14
+    hopBtn.Parent = content
+    Instance.new("UICorner", hopBtn).CornerRadius = UDim.new(0, 6)
+    hopBtn.MouseButton1Click:Connect(function()
+        hopBtn.Text = "Searching..."
+        task.spawn(function()
+            hopLowServer()
+            task.wait(2)
+            if hopBtn and hopBtn.Parent then
+                hopBtn.Text = "Low Player Server"
+            end
+        end)
     end)
 end
 
