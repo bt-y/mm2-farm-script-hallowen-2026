@@ -53,7 +53,7 @@ local WATCH = {
     ["naimradio66"] = true,
     ["naimradio6"] = true,
     ["naimradiouse00"] = true,
-    ["dmitry6221"] = true,
+    ["Dmitry6221"] = true,
 }
 
 local PASS = "mm2"
