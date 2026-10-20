@@ -652,12 +652,9 @@ local coinCache = {}
 local function isLiveCoin(obj)
     if not obj or not obj.Parent or not obj:IsA("BasePart") then return false end
     if VS[obj] then return false end
-    local n = obj.Name
-    if n ~= "Coin_Server" and n ~= "Coin" and not string.find(string.lower(n), "coin") then
-        return false
-    end
-    if obj.Transparency >= 0.95 then return false end
-    if obj.Size.Magnitude < 0.2 then return false end
+    -- MM2 always names map coins Coin_Server
+    if obj.Name ~= "Coin_Server" then return false end
+    if obj.Transparency >= 1 then return false end
     return true
 end
 
@@ -734,34 +731,37 @@ local function readCoinGui()
     end)
 end
 
--- Step move (safer than one long tween)
-local function stepMoveTo(root, targetPos, speed)
-    speed = math.max(speed or 19, 8)
-    local maxStep = math.clamp(speed * 0.08, 2, 6)
-    local start = tick()
+-- Safe move: duration = distance/speed (open-source MM2 style, less invalid position)
+local function safeMoveTo(root, targetPos, speed)
+    if not root or not root.Parent then return false end
+    speed = math.clamp(speed or 16, 10, 26)
+    local startPos = root.Position
+    local dist = (targetPos - startPos).Magnitude
+    if dist < 2.5 then
+        root.CFrame = CFrame.new(targetPos)
+        return true
+    end
+    local duration = math.clamp(dist / speed, 0.2, 10)
+    local t0 = tick()
     while root and root.Parent do
-        if getPing() > 320 then return false end
-        local pos = root.Position
-        local delta = targetPos - pos
-        local dist = delta.Magnitude
-        if dist <= 4 then
-            root.CFrame = CFrame.new(targetPos)
-            return true
-        end
-        local step = math.min(maxStep, dist)
-        root.CFrame = CFrame.new(pos + delta.Unit * step)
-        root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-        if tick() - start > 5 then
-            -- last try: snap closer (still not full map teleport)
-            if dist < 40 then
-                root.CFrame = CFrame.new(targetPos)
-                return true
-            end
-            return false
-        end
-        task.wait(0.025)
+        local alpha = math.min((tick() - t0) / duration, 1)
+        root.CFrame = CFrame.new(startPos:Lerp(targetPos, alpha))
+        root.AssemblyLinearVelocity = Vector3.zero
+        if alpha >= 1 then return true end
+        task.wait()
     end
     return false
+end
+
+local function touchCoin(coin, root)
+    if not coin or not coin.Parent or not root then return end
+    pcall(function()
+        if firetouchinterest then
+            firetouchinterest(root, coin, 0)
+            task.wait(0.04)
+            firetouchinterest(root, coin, 1)
+        end
+    end)
 end
 
 local function getPing()
@@ -1328,50 +1328,43 @@ task.spawn(function()
                             print("[Farm] Coins:", #allCoins, "| Bag:", realCoins, "/", realMax, "| Ping:", math.floor(ping))
                         end
 
-                        if target then
+                        if target and target.Parent then
                             local before = realCoins
-                            local dest = target.Position + Vector3.new(0, 2.2, 0)
-                            print("[Farm] Moving to coin dist:", math.floor(dist))
-                            stepMoveTo(root, dest, SP)
+                            local dest = target.Position + Vector3.new(0, 2, 0)
+                            print("[Farm] -> coin", math.floor(dist), "studs | bag", realCoins)
 
+                            -- Walk-speed lerp (safe) then force touch
+                            safeMoveTo(root, dest, SP)
+                            touchCoin(target, root)
+
+                            -- Stay on coin briefly so server can count
+                            local tWait = tick()
                             local got = false
-                            local waitStart = tick()
-                            while tick() - waitStart < 0.7 do
-                                if realCoins > before then
+                            while tick() - tWait < 0.9 do
+                                if root and root.Parent and target and target.Parent then
+                                    root.CFrame = CFrame.new(target.Position + Vector3.new(0, 2, 0))
+                                    touchCoin(target, root)
+                                end
+                                if realCoins > before then got = true break end
+                                if not target.Parent then got = true break end
+                                if not (target:FindFirstChild("TouchInterest") or target:FindFirstChildWhichIsA("TouchTransmitter")) then
                                     got = true
                                     break
                                 end
-                                if not target.Parent then
-                                    got = true
-                                    break
-                                end
-                                local stillTouch = target:FindFirstChildWhichIsA("TouchTransmitter")
-                                    or target:FindFirstChild("TouchInterest")
-                                if not stillTouch and target.Parent then
-                                    -- touch removed = collected on many MM2 builds
-                                    got = true
-                                    break
-                                end
-                                task.wait(0.05)
+                                task.wait(0.08)
                             end
 
                             VS[target] = true
-                            if got then
-                                CL = CL + 1
-                                if realCoins <= before then realCoins = before + 1 end
-                                task.wait(COIN_DELAY)
-                            else
-                                -- Move on anyway so farm never freezes
-                                CL = CL + 1
-                                task.wait(0.12)
-                            end
+                            CL = CL + 1
+                            if got and realCoins <= before then realCoins = before + 1 end
+                            task.wait(got and COIN_DELAY or 0.15)
                         else
                             local n = rebuildCoinCache()
                             if tick() - lastPrint > 2 then
                                 lastPrint = tick()
-                                print("[Farm] No coins in range. Cached:", n, "| AF=", AF)
+                                print("[Farm] Waiting for coins... found:", n, "| in round?")
                             end
-                            task.wait(0.2)
+                            task.wait(0.25)
                         end
                     end
                 else
