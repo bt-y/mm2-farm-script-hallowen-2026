@@ -647,66 +647,23 @@ local function removeAllDecals()
     print("[Decals] Removed", n)
 end
 
--- Cached coin list
-local coinCache = {}
-local function isLiveCoin(obj)
-    if not obj or not obj.Parent or not obj:IsA("BasePart") then return false end
-    if VS[obj] then return false end
-    -- MM2 always names map coins Coin_Server
-    if obj.Name ~= "Coin_Server" then return false end
-    if obj.Transparency >= 1 then return false end
-    return true
-end
-
-local function rebuildCoinCache()
-    coinCache = {}
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if isLiveCoin(obj) then
-            table.insert(coinCache, obj)
-        end
-    end
-    return #coinCache
-end
-
-workspace.DescendantAdded:Connect(function(obj)
-    task.defer(function()
-        if obj:IsA("BasePart") and isLiveCoin(obj) then
-            table.insert(coinCache, obj)
-        end
-    end)
-end)
-
-task.spawn(function()
-    task.wait(0.5)
-    print("[Farm] Initial coins cached:", rebuildCoinCache())
-    while true do
-        task.wait(3)
-        rebuildCoinCache()
-    end
-end)
-
+-- Simple proven detection: Coin_Server + TouchInterest (same as working MM2 farms)
 local function getCoins()
     local list = {}
-    local seen = {}
-    for i = #coinCache, 1, -1 do
-        local obj = coinCache[i]
-        if isLiveCoin(obj) and not seen[obj] then
-            seen[obj] = true
-            table.insert(list, obj)
-        else
-            table.remove(coinCache, i)
-        end
-    end
-    if #list == 0 then
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if isLiveCoin(obj) and not seen[obj] then
-                seen[obj] = true
-                table.insert(list, obj)
-                table.insert(coinCache, obj)
+    for _, v in ipairs(workspace:GetDescendants()) do
+        if v.Name == "Coin_Server" and not VS[v] then
+            if v:IsA("BasePart") then
+                if v:FindFirstChild("TouchInterest") or v:FindFirstChildWhichIsA("TouchTransmitter") then
+                    table.insert(list, v)
+                end
             end
         end
     end
     return list
+end
+
+local function rebuildCoinCache()
+    return #getCoins()
 end
 
 -- Real bag count from server events / GUI
@@ -1297,30 +1254,29 @@ task.spawn(function()
                         for _, obj in ipairs(allCoins) do
                             local d = (obj.Position - root.Position).Magnitude
                             if d < RG then
-                                table.insert(candidates, {part = obj, dist = d})
+                                table.insert(candidates, {obj = obj, dist = d})
                             end
                         end
 
                         local target, dist = nil, math.huge
                         if #candidates > 0 then
                             table.sort(candidates, function(a, b) return a.dist < b.dist end)
+                            local pick
                             if COIN_MODE == "Closest" then
-                                target = candidates[1].part
-                                dist = candidates[1].dist
+                                pick = candidates[1]
                             else
                                 local n = #candidates
                                 if n <= 2 then
-                                    local pick = candidates[math.random(1, n)]
-                                    target, dist = pick.part, pick.dist
+                                    pick = candidates[math.random(1, n)]
                                 else
                                     local midStart = math.max(2, math.floor(n * 0.3))
                                     local midEnd = math.min(n - 1, math.ceil(n * 0.7))
                                     if midStart > midEnd then midStart, midEnd = 2, math.max(2, n - 1) end
-                                    local idx = math.random(midStart, midEnd)
-                                    target = candidates[idx].part
-                                    dist = candidates[idx].dist
+                                    pick = candidates[math.random(midStart, midEnd)]
                                 end
                             end
+                            target = pick.obj
+                            dist = pick.dist
                         end
 
                         if tick() - lastPrint > 4 then
@@ -1331,13 +1287,11 @@ task.spawn(function()
                         if target and target.Parent then
                             local before = realCoins
                             local dest = target.Position + Vector3.new(0, 2, 0)
-                            print("[Farm] -> coin", math.floor(dist), "studs | bag", realCoins)
+                            print("[Farm] -> coin", math.floor(dist), "studs | total", #allCoins)
 
-                            -- Walk-speed lerp (safe) then force touch
                             safeMoveTo(root, dest, SP)
                             touchCoin(target, root)
 
-                            -- Stay on coin briefly so server can count
                             local tWait = tick()
                             local got = false
                             while tick() - tWait < 0.9 do
@@ -1347,10 +1301,7 @@ task.spawn(function()
                                 end
                                 if realCoins > before then got = true break end
                                 if not target.Parent then got = true break end
-                                if not (target:FindFirstChild("TouchInterest") or target:FindFirstChildWhichIsA("TouchTransmitter")) then
-                                    got = true
-                                    break
-                                end
+                                if not target:FindFirstChild("TouchInterest") then got = true break end
                                 task.wait(0.08)
                             end
 
@@ -1359,10 +1310,10 @@ task.spawn(function()
                             if got and realCoins <= before then realCoins = before + 1 end
                             task.wait(got and COIN_DELAY or 0.15)
                         else
-                            local n = rebuildCoinCache()
                             if tick() - lastPrint > 2 then
                                 lastPrint = tick()
-                                print("[Farm] Waiting for coins... found:", n, "| in round?")
+                                local n = #getCoins()
+                                print("[Farm] No coins in range | scanned:", n)
                             end
                             task.wait(0.25)
                         end
