@@ -702,17 +702,71 @@ end
 
 local function showAF()
     clear()
-    content.CanvasSize = UDim2.new(0, 0, 0, 780)
+    content.CanvasSize = UDim2.new(0, 0, 0, 900)
+    pcall(function() content.AutomaticCanvasSize = Enum.AutomaticSize.Y end)
 
     mkToggle("AutoFarm", content, AF, function(v)
         AF = v
         if v then CL = 0 VS = {} end
     end).LayoutOrder = 1
-    mkToggle("Anti AFK", content, AK, function(v) AK = v end).LayoutOrder = 2
-    mkToggle("Reset on Full", content, RF, function(v) RF = v end).LayoutOrder = 3
-    mkToggle("Performance", content, PM, function(v) if v then epm() end end).LayoutOrder = 4
-    mkToggle("Noclip", content, NOCLIP, function(v) NOCLIP = v setNoclip(v) end).LayoutOrder = 5
-    mkToggle("No Render", content, NORENDER, function(v) setNoRender(v) end).LayoutOrder = 6
+
+    -- Action buttons near TOP so they always show on mobile
+    local jobBtn = Instance.new("TextButton")
+    jobBtn.Size = UDim2.new(1, -16, 0, 34)
+    jobBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 160)
+    jobBtn.Text = "Copy JobId (Delta)"
+    jobBtn.TextColor3 = Color3.new(1,1,1)
+    jobBtn.Font = Enum.Font.GothamBold
+    jobBtn.TextSize = 12
+    jobBtn.LayoutOrder = 2
+    jobBtn.Parent = content
+    Instance.new("UICorner", jobBtn).CornerRadius = UDim.new(0, 6)
+    jobBtn.MouseButton1Click:Connect(function()
+        copyJoinCode()
+        jobBtn.Text = "Copied!"
+        task.delay(1.5, function()
+            if jobBtn and jobBtn.Parent then jobBtn.Text = "Copy JobId (Delta)" end
+        end)
+    end)
+
+    local hopBtn = Instance.new("TextButton")
+    hopBtn.Size = UDim2.new(1, -16, 0, 34)
+    hopBtn.BackgroundColor3 = Color3.fromRGB(30, 120, 50)
+    hopBtn.Text = "Low Player Server"
+    hopBtn.TextColor3 = Color3.new(1,1,1)
+    hopBtn.Font = Enum.Font.GothamBold
+    hopBtn.TextSize = 12
+    hopBtn.LayoutOrder = 3
+    hopBtn.Parent = content
+    Instance.new("UICorner", hopBtn).CornerRadius = UDim.new(0, 6)
+    hopBtn.MouseButton1Click:Connect(function()
+        hopBtn.Text = "Searching..."
+        task.spawn(function()
+            hopLowServer()
+            task.wait(2)
+            if hopBtn and hopBtn.Parent then hopBtn.Text = "Low Player Server" end
+        end)
+    end)
+
+    local tpBtn = Instance.new("TextButton")
+    tpBtn.Size = UDim2.new(1, -16, 0, 34)
+    tpBtn.BackgroundColor3 = Color3.fromRGB(150, 55, 15)
+    tpBtn.Text = "TP Secret Place"
+    tpBtn.TextColor3 = Color3.new(1,1,1)
+    tpBtn.Font = Enum.Font.GothamBold
+    tpBtn.TextSize = 12
+    tpBtn.LayoutOrder = 4
+    tpBtn.Parent = content
+    Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 6)
+    tpBtn.MouseButton1Click:Connect(function()
+        pcall(function() TeleportService:Teleport(HIDDEN_ID, lp) end)
+    end)
+
+    mkToggle("Anti AFK", content, AK, function(v) AK = v end).LayoutOrder = 5
+    mkToggle("Reset on Full", content, RF, function(v) RF = v end).LayoutOrder = 6
+    mkToggle("Performance", content, PM, function(v) if v then epm() end end).LayoutOrder = 7
+    mkToggle("Noclip", content, NOCLIP, function(v) NOCLIP = v setNoclip(v) end).LayoutOrder = 8
+    mkToggle("No Render", content, NORENDER, function(v) setNoRender(v) end).LayoutOrder = 9
 
     local modeLbl = Instance.new("TextLabel")
     modeLbl.Size = UDim2.new(1, -16, 0, 18)
@@ -721,7 +775,7 @@ local function showAF()
     modeLbl.TextColor3 = Color3.fromRGB(255, 180, 100)
     modeLbl.Font = Enum.Font.GothamBold
     modeLbl.TextSize = 12
-    modeLbl.LayoutOrder = 7
+    modeLbl.LayoutOrder = 10
     modeLbl.Parent = content
 
     for i, m in ipairs({"Normal", "Strategy"}) do
@@ -732,7 +786,7 @@ local function showAF()
         b.TextColor3 = Color3.new(1,1,1)
         b.Font = Enum.Font.GothamBold
         b.TextSize = 12
-        b.LayoutOrder = 7 + i
+        b.LayoutOrder = 10 + i
         b.Parent = content
         Instance.new("UICorner", b).CornerRadius = UDim.new(0, 5)
         b.MouseButton1Click:Connect(function()
@@ -754,7 +808,7 @@ local function showAF()
     coinLbl.TextColor3 = Color3.fromRGB(255, 180, 100)
     coinLbl.Font = Enum.Font.GothamBold
     coinLbl.TextSize = 12
-    coinLbl.LayoutOrder = 10
+    coinLbl.LayoutOrder = 13
     coinLbl.Parent = content
 
     for i, m in ipairs({"Closest", "Spread"}) do
@@ -765,7 +819,7 @@ local function showAF()
         b.TextColor3 = Color3.new(1,1,1)
         b.Font = Enum.Font.GothamBold
         b.TextSize = 12
-        b.LayoutOrder = 10 + i
+        b.LayoutOrder = 13 + i
         b.Parent = content
         Instance.new("UICorner", b).CornerRadius = UDim.new(0, 5)
         b.MouseButton1Click:Connect(function()
@@ -786,7 +840,7 @@ local function showAF()
     lbl.TextColor3 = Color3.fromRGB(230, 180, 120)
     lbl.Font = Enum.Font.Gotham
     lbl.TextSize = 12
-    lbl.LayoutOrder = 13
+    lbl.LayoutOrder = 16
     lbl.Parent = content
 
     local box = Instance.new("TextBox")
@@ -796,7 +850,7 @@ local function showAF()
     box.TextColor3 = Color3.new(1,1,1)
     box.Font = Enum.Font.GothamBold
     box.TextSize = 13
-    box.LayoutOrder = 14
+    box.LayoutOrder = 17
     box.Parent = content
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
     box.FocusLost:Connect(function(e)
@@ -815,7 +869,7 @@ local function showAF()
     delayLbl.TextColor3 = Color3.fromRGB(230, 180, 120)
     delayLbl.Font = Enum.Font.Gotham
     delayLbl.TextSize = 12
-    delayLbl.LayoutOrder = 15
+    delayLbl.LayoutOrder = 18
     delayLbl.Parent = content
 
     local delayBox = Instance.new("TextBox")
@@ -825,7 +879,7 @@ local function showAF()
     delayBox.TextColor3 = Color3.new(1,1,1)
     delayBox.Font = Enum.Font.GothamBold
     delayBox.TextSize = 13
-    delayBox.LayoutOrder = 16
+    delayBox.LayoutOrder = 19
     delayBox.Parent = content
     Instance.new("UICorner", delayBox).CornerRadius = UDim.new(0, 5)
     delayBox.FocusLost:Connect(function(e)
@@ -844,64 +898,13 @@ local function showAF()
     cnt.TextColor3 = Color3.fromRGB(255, 190, 100)
     cnt.Font = Enum.Font.Gotham
     cnt.TextSize = 12
-    cnt.LayoutOrder = 17
+    cnt.LayoutOrder = 20
     cnt.Parent = content
     task.spawn(function()
         while cnt.Parent do
             cnt.Text = "Collected: " .. CL
             task.wait(0.5)
         end
-    end)
-
-    local tpBtn = Instance.new("TextButton")
-    tpBtn.Size = UDim2.new(1, -16, 0, 34)
-    tpBtn.BackgroundColor3 = Color3.fromRGB(150, 55, 15)
-    tpBtn.Text = "TP Secret Place"
-    tpBtn.TextColor3 = Color3.new(1,1,1)
-    tpBtn.Font = Enum.Font.GothamBold
-    tpBtn.TextSize = 12
-    tpBtn.LayoutOrder = 18
-    tpBtn.Parent = content
-    Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 6)
-    tpBtn.MouseButton1Click:Connect(function()
-        pcall(function() TeleportService:Teleport(HIDDEN_ID, lp) end)
-    end)
-
-    local hopBtn = Instance.new("TextButton")
-    hopBtn.Size = UDim2.new(1, -16, 0, 34)
-    hopBtn.BackgroundColor3 = Color3.fromRGB(30, 120, 50)
-    hopBtn.Text = "Low Player Server"
-    hopBtn.TextColor3 = Color3.new(1,1,1)
-    hopBtn.Font = Enum.Font.GothamBold
-    hopBtn.TextSize = 12
-    hopBtn.LayoutOrder = 19
-    hopBtn.Parent = content
-    Instance.new("UICorner", hopBtn).CornerRadius = UDim.new(0, 6)
-    hopBtn.MouseButton1Click:Connect(function()
-        hopBtn.Text = "Searching..."
-        task.spawn(function()
-            hopLowServer()
-            task.wait(2)
-            if hopBtn and hopBtn.Parent then hopBtn.Text = "Low Player Server" end
-        end)
-    end)
-
-    local jobBtn = Instance.new("TextButton")
-    jobBtn.Size = UDim2.new(1, -16, 0, 34)
-    jobBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 160)
-    jobBtn.Text = "Copy JobId (Delta)"
-    jobBtn.TextColor3 = Color3.new(1,1,1)
-    jobBtn.Font = Enum.Font.GothamBold
-    jobBtn.TextSize = 12
-    jobBtn.LayoutOrder = 20
-    jobBtn.Parent = content
-    Instance.new("UICorner", jobBtn).CornerRadius = UDim.new(0, 6)
-    jobBtn.MouseButton1Click:Connect(function()
-        copyJoinCode()
-        jobBtn.Text = "Copied!"
-        task.delay(1.5, function()
-            if jobBtn and jobBtn.Parent then jobBtn.Text = "Copy JobId (Delta)" end
-        end)
     end)
 end
 
