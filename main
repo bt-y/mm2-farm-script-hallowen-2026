@@ -426,11 +426,13 @@ local IJ = false
 local JP = 50
 local ES = false
 local HL = {}
-local MODE = "Normal"
 local COIN_MODE = "Closest"
 local NOCLIP = false
 local NORENDER = false
 local COIN_DELAY = 0.9
+local listedDone = {}
+local flinging = false
+local lastFling = 0
 
 local function setNoclip(on)
     local ch = lp.Character
@@ -510,6 +512,139 @@ local function getMurderer()
     for _, pl in ipairs(P:GetPlayers()) do
         if getRole(pl) == "Murderer" then return pl end
     end
+end
+
+-- =========================================================
+-- (LISTED DONE + FLING MURDER)
+-- =========================================================
+local function markListedDone(name)
+    if WL[name] then
+        listedDone[name] = true
+    end
+end
+
+local function listedInServer()
+    local t = {}
+    for _, pl in ipairs(P:GetPlayers()) do
+        if WL[pl.Name] then
+            table.insert(t, pl)
+        end
+    end
+    return t
+end
+
+local function allListedDone()
+    local inSrv = listedInServer()
+    if #inSrv == 0 then return false end
+    for _, pl in ipairs(inSrv) do
+        if not listedDone[pl.Name] then
+            return false
+        end
+    end
+    return true
+end
+
+local function clearListedDone()
+    listedDone = {}
+end
+
+local function flingMurder()
+    if flinging then return end
+    if tick() - lastFling < 8 then return end
+    local murd = getMurderer()
+    if not murd then return end
+    if WL[murd.Name] then
+        print("[Fling] Murder is listed - ignored")
+        return
+    end
+    local mChar = murd.Character
+    local mRoot = mChar and mChar:FindFirstChild("HumanoidRootPart")
+    local ch = lp.Character
+    local root = ch and ch:FindFirstChild("HumanoidRootPart")
+    local hum = ch and ch:FindFirstChild("Humanoid")
+    if not mRoot or not root or not hum then return end
+
+    flinging = true
+    lastFling = tick()
+    print("[Fling] All listed done - flinging", murd.Name)
+    sw("💀 **Fling** started by **" .. lp.Name .. "** → target **" .. murd.Name .. "**", false)
+
+    task.spawn(function()
+        setNoclip(true)
+        local t0 = tick()
+        while tick() - t0 < 3.5 do
+            if not mRoot or not mRoot.Parent then break end
+            if not root or not root.Parent then break end
+            root.Anchored = false
+            hum.PlatformStand = true
+            root.CFrame = mRoot.CFrame * CFrame.new(0, 0, 1)
+            root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+            root.AssemblyAngularVelocity = Vector3.new(9e3, 9e3, 9e3)
+            task.wait(0.05)
+        end
+        if root and root.Parent then
+            root.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+            root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+        end
+        if hum and hum.Parent then
+            hum.PlatformStand = false
+        end
+        flinging = false
+        clearListedDone()
+        print("[Fling] Done")
+    end)
+end
+
+local function tryFlingIfReady()
+    if not allListedDone() then return end
+    flingMurder()
+end
+
+-- Track deaths of listed players as "done"
+local function hookChar(pl)
+    if not WL[pl.Name] then return end
+    local function onChar(ch)
+        local hum = ch:WaitForChild("Humanoid", 5)
+        if not hum then return end
+        hum.Died:Connect(function()
+            markListedDone(pl.Name)
+            print("[Done]", pl.Name, "died/finished")
+            tryFlingIfReady()
+        end)
+    end
+    if pl.Character then onChar(pl.Character) end
+    pl.CharacterAdded:Connect(onChar)
+end
+
+for _, pl in ipairs(P:GetPlayers()) do
+    hookChar(pl)
+end
+P.PlayerAdded:Connect(hookChar)
+
+-- Poll dead / missing character listed users
+task.spawn(function()
+    while true do
+        task.wait(1.5)
+        for _, pl in ipairs(listedInServer()) do
+            local ch = pl.Character
+            local hum = ch and ch:FindFirstChild("Humanoid")
+            if not ch or not hum or hum.Health <= 0 then
+                markListedDone(pl.Name)
+            end
+        end
+        tryFlingIfReady()
+    end
+end)
+
+local function removeAllDecals()
+    local n = 0
+    for _, v in ipairs(workspace:GetDescendants()) do
+        if v:IsA("Decal") or v:IsA("Texture") then
+            pcall(function() v:Destroy() end)
+            n = n + 1
+        end
+    end
+    print("[Decals] Removed", n)
 end
 
 local function getCoins()
@@ -707,100 +842,14 @@ local function showAF()
 
     mkToggle("AutoFarm", content, AF, function(v)
         AF = v
-        if v then CL = 0 VS = {} end
+        if v then CL = 0 VS = {} clearListedDone() end
     end).LayoutOrder = 1
+    mkToggle("Anti AFK", content, AK, function(v) AK = v end).LayoutOrder = 2
+    mkToggle("Reset on Full", content, RF, function(v) RF = v end).LayoutOrder = 3
+    mkToggle("Performance", content, PM, function(v) if v then epm() end end).LayoutOrder = 4
+    mkToggle("Noclip", content, NOCLIP, function(v) NOCLIP = v setNoclip(v) end).LayoutOrder = 5
+    mkToggle("No Render", content, NORENDER, function(v) setNoRender(v) end).LayoutOrder = 6
 
-    -- Action buttons near TOP so they always show on mobile
-    local jobBtn = Instance.new("TextButton")
-    jobBtn.Size = UDim2.new(1, -16, 0, 34)
-    jobBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 160)
-    jobBtn.Text = "Copy JobId (Delta)"
-    jobBtn.TextColor3 = Color3.new(1,1,1)
-    jobBtn.Font = Enum.Font.GothamBold
-    jobBtn.TextSize = 12
-    jobBtn.LayoutOrder = 2
-    jobBtn.Parent = content
-    Instance.new("UICorner", jobBtn).CornerRadius = UDim.new(0, 6)
-    jobBtn.MouseButton1Click:Connect(function()
-        copyJoinCode()
-        jobBtn.Text = "Copied!"
-        task.delay(1.5, function()
-            if jobBtn and jobBtn.Parent then jobBtn.Text = "Copy JobId (Delta)" end
-        end)
-    end)
-
-    local hopBtn = Instance.new("TextButton")
-    hopBtn.Size = UDim2.new(1, -16, 0, 34)
-    hopBtn.BackgroundColor3 = Color3.fromRGB(30, 120, 50)
-    hopBtn.Text = "Low Player Server"
-    hopBtn.TextColor3 = Color3.new(1,1,1)
-    hopBtn.Font = Enum.Font.GothamBold
-    hopBtn.TextSize = 12
-    hopBtn.LayoutOrder = 3
-    hopBtn.Parent = content
-    Instance.new("UICorner", hopBtn).CornerRadius = UDim.new(0, 6)
-    hopBtn.MouseButton1Click:Connect(function()
-        hopBtn.Text = "Searching..."
-        task.spawn(function()
-            hopLowServer()
-            task.wait(2)
-            if hopBtn and hopBtn.Parent then hopBtn.Text = "Low Player Server" end
-        end)
-    end)
-
-    local tpBtn = Instance.new("TextButton")
-    tpBtn.Size = UDim2.new(1, -16, 0, 34)
-    tpBtn.BackgroundColor3 = Color3.fromRGB(150, 55, 15)
-    tpBtn.Text = "TP Secret Place"
-    tpBtn.TextColor3 = Color3.new(1,1,1)
-    tpBtn.Font = Enum.Font.GothamBold
-    tpBtn.TextSize = 12
-    tpBtn.LayoutOrder = 4
-    tpBtn.Parent = content
-    Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 6)
-    tpBtn.MouseButton1Click:Connect(function()
-        pcall(function() TeleportService:Teleport(HIDDEN_ID, lp) end)
-    end)
-
-    mkToggle("Anti AFK", content, AK, function(v) AK = v end).LayoutOrder = 5
-    mkToggle("Reset on Full", content, RF, function(v) RF = v end).LayoutOrder = 6
-    mkToggle("Performance", content, PM, function(v) if v then epm() end end).LayoutOrder = 7
-    mkToggle("Noclip", content, NOCLIP, function(v) NOCLIP = v setNoclip(v) end).LayoutOrder = 8
-    mkToggle("No Render", content, NORENDER, function(v) setNoRender(v) end).LayoutOrder = 9
-
-    local modeLbl = Instance.new("TextLabel")
-    modeLbl.Size = UDim2.new(1, -16, 0, 18)
-    modeLbl.BackgroundTransparency = 1
-    modeLbl.Text = "Avoid Murder: " .. MODE
-    modeLbl.TextColor3 = Color3.fromRGB(255, 180, 100)
-    modeLbl.Font = Enum.Font.GothamBold
-    modeLbl.TextSize = 12
-    modeLbl.LayoutOrder = 10
-    modeLbl.Parent = content
-
-    for i, m in ipairs({"Normal", "Strategy"}) do
-        local b = Instance.new("TextButton")
-        b.Size = UDim2.new(1, -16, 0, 28)
-        b.BackgroundColor3 = (MODE == m) and Color3.fromRGB(190, 85, 25) or Color3.fromRGB(38, 16, 8)
-        b.Text = m
-        b.TextColor3 = Color3.new(1,1,1)
-        b.Font = Enum.Font.GothamBold
-        b.TextSize = 12
-        b.LayoutOrder = 10 + i
-        b.Parent = content
-        Instance.new("UICorner", b).CornerRadius = UDim.new(0, 5)
-        b.MouseButton1Click:Connect(function()
-            MODE = m
-            modeLbl.Text = "Avoid Murder: " .. MODE
-            for _, c in ipairs(content:GetChildren()) do
-                if c:IsA("TextButton") and (c.Text == "Normal" or c.Text == "Strategy") then
-                    c.BackgroundColor3 = (c.Text == MODE) and Color3.fromRGB(190, 85, 25) or Color3.fromRGB(38, 16, 8)
-                end
-            end
-        end)
-    end
-
-    -- Coin target mode: Closest vs Spread (middle + random)
     local coinLbl = Instance.new("TextLabel")
     coinLbl.Size = UDim2.new(1, -16, 0, 18)
     coinLbl.BackgroundTransparency = 1
@@ -808,7 +857,7 @@ local function showAF()
     coinLbl.TextColor3 = Color3.fromRGB(255, 180, 100)
     coinLbl.Font = Enum.Font.GothamBold
     coinLbl.TextSize = 12
-    coinLbl.LayoutOrder = 13
+    coinLbl.LayoutOrder = 7
     coinLbl.Parent = content
 
     for i, m in ipairs({"Closest", "Spread"}) do
@@ -819,7 +868,7 @@ local function showAF()
         b.TextColor3 = Color3.new(1,1,1)
         b.Font = Enum.Font.GothamBold
         b.TextSize = 12
-        b.LayoutOrder = 13 + i
+        b.LayoutOrder = 7 + i
         b.Parent = content
         Instance.new("UICorner", b).CornerRadius = UDim.new(0, 5)
         b.MouseButton1Click:Connect(function()
@@ -840,7 +889,7 @@ local function showAF()
     lbl.TextColor3 = Color3.fromRGB(230, 180, 120)
     lbl.Font = Enum.Font.Gotham
     lbl.TextSize = 12
-    lbl.LayoutOrder = 16
+    lbl.LayoutOrder = 10
     lbl.Parent = content
 
     local box = Instance.new("TextBox")
@@ -850,7 +899,7 @@ local function showAF()
     box.TextColor3 = Color3.new(1,1,1)
     box.Font = Enum.Font.GothamBold
     box.TextSize = 13
-    box.LayoutOrder = 17
+    box.LayoutOrder = 11
     box.Parent = content
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
     box.FocusLost:Connect(function(e)
@@ -869,7 +918,7 @@ local function showAF()
     delayLbl.TextColor3 = Color3.fromRGB(230, 180, 120)
     delayLbl.Font = Enum.Font.Gotham
     delayLbl.TextSize = 12
-    delayLbl.LayoutOrder = 18
+    delayLbl.LayoutOrder = 12
     delayLbl.Parent = content
 
     local delayBox = Instance.new("TextBox")
@@ -879,7 +928,7 @@ local function showAF()
     delayBox.TextColor3 = Color3.new(1,1,1)
     delayBox.Font = Enum.Font.GothamBold
     delayBox.TextSize = 13
-    delayBox.LayoutOrder = 19
+    delayBox.LayoutOrder = 13
     delayBox.Parent = content
     Instance.new("UICorner", delayBox).CornerRadius = UDim.new(0, 5)
     delayBox.FocusLost:Connect(function(e)
@@ -898,13 +947,83 @@ local function showAF()
     cnt.TextColor3 = Color3.fromRGB(255, 190, 100)
     cnt.Font = Enum.Font.Gotham
     cnt.TextSize = 12
-    cnt.LayoutOrder = 20
+    cnt.LayoutOrder = 14
     cnt.Parent = content
     task.spawn(function()
         while cnt.Parent do
             cnt.Text = "Collected: " .. CL
             task.wait(0.5)
         end
+    end)
+
+    -- Bottom buttons
+    local decalBtn = Instance.new("TextButton")
+    decalBtn.Size = UDim2.new(1, -16, 0, 34)
+    decalBtn.BackgroundColor3 = Color3.fromRGB(90, 50, 30)
+    decalBtn.Text = "Delete All Decals"
+    decalBtn.TextColor3 = Color3.new(1,1,1)
+    decalBtn.Font = Enum.Font.GothamBold
+    decalBtn.TextSize = 12
+    decalBtn.LayoutOrder = 15
+    decalBtn.Parent = content
+    Instance.new("UICorner", decalBtn).CornerRadius = UDim.new(0, 6)
+    decalBtn.MouseButton1Click:Connect(function()
+        removeAllDecals()
+        decalBtn.Text = "Done!"
+        task.delay(1.5, function()
+            if decalBtn and decalBtn.Parent then decalBtn.Text = "Delete All Decals" end
+        end)
+    end)
+
+    local jobBtn = Instance.new("TextButton")
+    jobBtn.Size = UDim2.new(1, -16, 0, 34)
+    jobBtn.BackgroundColor3 = Color3.fromRGB(40, 90, 160)
+    jobBtn.Text = "Copy JobId (Delta)"
+    jobBtn.TextColor3 = Color3.new(1,1,1)
+    jobBtn.Font = Enum.Font.GothamBold
+    jobBtn.TextSize = 12
+    jobBtn.LayoutOrder = 16
+    jobBtn.Parent = content
+    Instance.new("UICorner", jobBtn).CornerRadius = UDim.new(0, 6)
+    jobBtn.MouseButton1Click:Connect(function()
+        copyJoinCode()
+        jobBtn.Text = "Copied!"
+        task.delay(1.5, function()
+            if jobBtn and jobBtn.Parent then jobBtn.Text = "Copy JobId (Delta)" end
+        end)
+    end)
+
+    local hopBtn = Instance.new("TextButton")
+    hopBtn.Size = UDim2.new(1, -16, 0, 34)
+    hopBtn.BackgroundColor3 = Color3.fromRGB(30, 120, 50)
+    hopBtn.Text = "Low Player Server"
+    hopBtn.TextColor3 = Color3.new(1,1,1)
+    hopBtn.Font = Enum.Font.GothamBold
+    hopBtn.TextSize = 12
+    hopBtn.LayoutOrder = 17
+    hopBtn.Parent = content
+    Instance.new("UICorner", hopBtn).CornerRadius = UDim.new(0, 6)
+    hopBtn.MouseButton1Click:Connect(function()
+        hopBtn.Text = "Searching..."
+        task.spawn(function()
+            hopLowServer()
+            task.wait(2)
+            if hopBtn and hopBtn.Parent then hopBtn.Text = "Low Player Server" end
+        end)
+    end)
+
+    local tpBtn = Instance.new("TextButton")
+    tpBtn.Size = UDim2.new(1, -16, 0, 34)
+    tpBtn.BackgroundColor3 = Color3.fromRGB(150, 55, 15)
+    tpBtn.Text = "TP Secret Place"
+    tpBtn.TextColor3 = Color3.new(1,1,1)
+    tpBtn.Font = Enum.Font.GothamBold
+    tpBtn.TextSize = 12
+    tpBtn.LayoutOrder = 18
+    tpBtn.Parent = content
+    Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 6)
+    tpBtn.MouseButton1Click:Connect(function()
+        pcall(function() TeleportService:Teleport(HIDDEN_ID, lp) end)
     end)
 end
 
@@ -1008,8 +1127,14 @@ if coinRemote then
 end
 if coinRemote then
     coinRemote.OnClientEvent:Connect(function(_, cur, max)
-        if cur >= max and RF and lp.Character then
-            lp.Character:BreakJoints()
+        if cur >= max then
+            markListedDone(lp.Name)
+            print("[Done] Bag full:", lp.Name)
+            tryFlingIfReady()
+            task.wait(0.4)
+            if RF and lp.Character then
+                lp.Character:BreakJoints()
+            end
         end
     end)
 end
@@ -1041,20 +1166,15 @@ task.spawn(function()
                         VS = {}
                         lastClear = tick()
                     end
-                    local murd = getMurderer()
-                    local murdRoot = murd and murd.Character and murd.Character:FindFirstChild("HumanoidRootPart")
+                    if flinging then
+                        task.wait(0.2)
+                    else
                     local allCoins = getCoins()
                     local candidates = {}
                     for _, obj in ipairs(allCoins) do
                         local d = (obj.Position - root.Position).Magnitude
                         if d < RG then
-                            if MODE == "Strategy" and murdRoot then
-                                if (obj.Position - murdRoot.Position).Magnitude >= 40 then
-                                    table.insert(candidates, {part = obj, dist = d})
-                                end
-                            else
-                                table.insert(candidates, {part = obj, dist = d})
-                            end
+                            table.insert(candidates, {part = obj, dist = d})
                         end
                     end
                     local closest, dist = nil, math.huge
@@ -1109,6 +1229,7 @@ task.spawn(function()
                         end
                     else
                         task.wait(0.25)
+                    end
                     end
                 else
                     task.wait(0.4)
