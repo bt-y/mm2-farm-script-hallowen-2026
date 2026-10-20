@@ -647,13 +647,18 @@ local function removeAllDecals()
     print("[Decals] Removed", n)
 end
 
--- Cached coin list (avoids slow full workspace scan every frame)
+-- Cached coin list
 local coinCache = {}
 local function isLiveCoin(obj)
     if not obj or not obj.Parent or not obj:IsA("BasePart") then return false end
-    if obj.Name ~= "Coin_Server" then return false end
     if VS[obj] then return false end
-    return obj:FindFirstChildWhichIsA("TouchTransmitter") or obj:FindFirstChild("TouchInterest")
+    local n = obj.Name
+    if n ~= "Coin_Server" and n ~= "Coin" and not string.find(string.lower(n), "coin") then
+        return false
+    end
+    if obj.Transparency >= 0.95 then return false end
+    if obj.Size.Magnitude < 0.2 then return false end
+    return true
 end
 
 local function rebuildCoinCache()
@@ -663,32 +668,45 @@ local function rebuildCoinCache()
             table.insert(coinCache, obj)
         end
     end
+    return #coinCache
 end
 
 workspace.DescendantAdded:Connect(function(obj)
     task.defer(function()
-        if isLiveCoin(obj) then
+        if obj:IsA("BasePart") and isLiveCoin(obj) then
             table.insert(coinCache, obj)
         end
     end)
 end)
 
 task.spawn(function()
-    rebuildCoinCache()
+    task.wait(0.5)
+    print("[Farm] Initial coins cached:", rebuildCoinCache())
     while true do
-        task.wait(4)
+        task.wait(3)
         rebuildCoinCache()
     end
 end)
 
 local function getCoins()
     local list = {}
+    local seen = {}
     for i = #coinCache, 1, -1 do
         local obj = coinCache[i]
-        if isLiveCoin(obj) then
+        if isLiveCoin(obj) and not seen[obj] then
+            seen[obj] = true
             table.insert(list, obj)
         else
             table.remove(coinCache, i)
+        end
+    end
+    if #list == 0 then
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if isLiveCoin(obj) and not seen[obj] then
+                seen[obj] = true
+                table.insert(list, obj)
+                table.insert(coinCache, obj)
+            end
         end
     end
     return list
@@ -716,25 +734,32 @@ local function readCoinGui()
     end)
 end
 
--- Step move (no long CFrame tween = less invalid position kicks)
+-- Step move (safer than one long tween)
 local function stepMoveTo(root, targetPos, speed)
-    local maxStep = math.clamp(speed * 0.05, 1.2, 4.5)
+    speed = math.max(speed or 19, 8)
+    local maxStep = math.clamp(speed * 0.08, 2, 6)
     local start = tick()
     while root and root.Parent do
-        if getPing() > 280 then return false end
+        if getPing() > 320 then return false end
         local pos = root.Position
         local delta = targetPos - pos
         local dist = delta.Magnitude
-        if dist <= 3.2 then
+        if dist <= 4 then
             root.CFrame = CFrame.new(targetPos)
             return true
         end
         local step = math.min(maxStep, dist)
-        local nextPos = pos + delta.Unit * step
-        root.CFrame = CFrame.new(nextPos)
+        root.CFrame = CFrame.new(pos + delta.Unit * step)
         root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-        if tick() - start > 6 then return false end
-        task.wait(0.03)
+        if tick() - start > 5 then
+            -- last try: snap closer (still not full map teleport)
+            if dist < 40 then
+                root.CFrame = CFrame.new(targetPos)
+                return true
+            end
+            return false
+        end
+        task.wait(0.025)
     end
     return false
 end
@@ -922,7 +947,15 @@ local function showAF()
 
     mkToggle("AutoFarm", content, AF, function(v)
         AF = v
-        if v then CL = 0 VS = {} clearListedDone() end
+        if v then
+            CL = 0
+            VS = {}
+            clearListedDone()
+            local n = rebuildCoinCache()
+            print("[Farm] AutoFarm ON | coins found:", n)
+        else
+            print("[Farm] AutoFarm OFF")
+        end
     end).LayoutOrder = 1
     mkToggle("Anti AFK", content, AK, function(v) AK = v end).LayoutOrder = 2
     mkToggle("Reset on Full", content, RF, function(v) RF = v end).LayoutOrder = 3
@@ -1296,52 +1329,49 @@ task.spawn(function()
                         end
 
                         if target then
-                            local hasTouch = target:FindFirstChildWhichIsA("TouchTransmitter")
-                                or target:FindFirstChild("TouchInterest")
-                            if not hasTouch then
-                                VS[target] = true
+                            local before = realCoins
+                            local dest = target.Position + Vector3.new(0, 2.2, 0)
+                            print("[Farm] Moving to coin dist:", math.floor(dist))
+                            stepMoveTo(root, dest, SP)
+
+                            local got = false
+                            local waitStart = tick()
+                            while tick() - waitStart < 0.7 do
+                                if realCoins > before then
+                                    got = true
+                                    break
+                                end
+                                if not target.Parent then
+                                    got = true
+                                    break
+                                end
+                                local stillTouch = target:FindFirstChildWhichIsA("TouchTransmitter")
+                                    or target:FindFirstChild("TouchInterest")
+                                if not stillTouch and target.Parent then
+                                    -- touch removed = collected on many MM2 builds
+                                    got = true
+                                    break
+                                end
                                 task.wait(0.05)
+                            end
+
+                            VS[target] = true
+                            if got then
+                                CL = CL + 1
+                                if realCoins <= before then realCoins = before + 1 end
+                                task.wait(COIN_DELAY)
                             else
-                                local before = realCoins
-                                local dest = target.Position + Vector3.new(0, 2.2, 0)
-                                local okMove = stepMoveTo(root, dest, SP)
-
-                                -- Wait briefly for server to register collect
-                                local got = false
-                                local waitStart = tick()
-                                while tick() - waitStart < 0.85 do
-                                    if realCoins > before then
-                                        got = true
-                                        break
-                                    end
-                                    -- TouchInterest gone = likely collected
-                                    if not target.Parent or not (target:FindFirstChildWhichIsA("TouchTransmitter") or target:FindFirstChild("TouchInterest")) then
-                                        got = true
-                                        break
-                                    end
-                                    task.wait(0.05)
-                                end
-
-                                VS[target] = true
-                                if got then
-                                    CL = CL + 1
-                                    if realCoins <= before then
-                                        realCoins = before + 1
-                                    end
-                                    task.wait(COIN_DELAY)
-                                else
-                                    -- Did not count - skip to another coin (no long wait)
-                                    print("[Farm] Coin not counted - skipping")
-                                    task.wait(0.08)
-                                end
+                                -- Move on anyway so farm never freezes
+                                CL = CL + 1
+                                task.wait(0.12)
                             end
                         else
-                            -- No coins yet (round starting) - rebuild cache fast
-                            if tick() - lastClear > 1.5 then
-                                rebuildCoinCache()
-                                lastClear = tick()
+                            local n = rebuildCoinCache()
+                            if tick() - lastPrint > 2 then
+                                lastPrint = tick()
+                                print("[Farm] No coins in range. Cached:", n, "| AF=", AF)
                             end
-                            task.wait(0.15)
+                            task.wait(0.2)
                         end
                     end
                 else
