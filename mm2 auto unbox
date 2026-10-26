@@ -1,85 +1,76 @@
--- MM2 Halloween Box Auto Unbox v3 (fixed remote)
--- ReplicatedStorage.Remotes.Shop.OpenCrate:InvokeServer("Halloween2026Box", "MysteryBox", "Candies2026")
+-- MM2 Halloween Box Auto Unbox v4 (clean, no hooks)
+-- MUST rejoin before using if you ran the SPY version
+-- OpenCrate:InvokeServer("Halloween2026Box", "MysteryBox", "Candies2026")
 
 local Players = game:GetService("Players")
 local RPS = game:GetService("ReplicatedStorage")
-local VIM = game:GetService("VirtualInputManager")
 local lp = Players.LocalPlayer
 local pg = lp:WaitForChild("PlayerGui")
 
-local DELAY = 0.5
+local DELAY = 1.0
 local running = false
 local opened = 0
+local lastResult = "ready"
 
-local OpenCrate = nil
-pcall(function()
-    OpenCrate = RPS:WaitForChild("Remotes", 5)
-        :WaitForChild("Shop", 5)
-        :WaitForChild("OpenCrate", 5)
-end)
+local function getOpenCrate()
+    local ok, remote = pcall(function()
+        return RPS.Remotes.Shop.OpenCrate
+    end)
+    if ok then return remote end
+    return nil
+end
 
 local function openBox()
-    if not OpenCrate then
-        pcall(function()
-            OpenCrate = RPS.Remotes.Shop.OpenCrate
-        end)
+    local remote = getOpenCrate()
+    if not remote then
+        lastResult = "no remote"
+        return false
     end
-    if not OpenCrate then return false end
-    local ok = pcall(function()
-        OpenCrate:InvokeServer("Halloween2026Box", "MysteryBox", "Candies2026")
+    local ok, result = pcall(function()
+        return remote:InvokeServer("Halloween2026Box", "MysteryBox", "Candies2026")
     end)
-    return ok
+    if not ok then
+        lastResult = "error: " .. tostring(result)
+        return false
+    end
+    if result == nil then
+        lastResult = "nil (no candies / blocked)"
+        return false
+    end
+    lastResult = typeof(result) == "table" and "ok (table)" or ("ok " .. tostring(result))
+    return true
 end
 
-local function clickGuiButton(btn)
-    if not btn or not btn:IsA("GuiButton") then return end
-    pcall(function()
-        if getconnections then
-            for _, evName in ipairs({"Activated", "MouseButton1Click", "MouseButton1Down"}) do
-                local ok, conns = pcall(function() return getconnections(btn[evName]) end)
-                if ok and conns then
-                    for _, c in ipairs(conns) do
-                        pcall(function() c:Fire() end)
-                    end
-                end
-            end
-        end
-        local abs = btn.AbsolutePosition
-        local size = btn.AbsoluteSize
-        if size.X < 5 or size.Y < 5 then return end
-        local x = abs.X + size.X / 2
-        local y = abs.Y + size.Y / 2
-        VIM:SendMouseButtonEvent(x, y, 0, true, game, 0)
-        task.wait(0.02)
-        VIM:SendMouseButtonEvent(x, y, 0, false, game, 0)
-    end)
-end
-
+-- soft claim: only TextButtons with text Claim (no ImageButton Text)
 local function autoClaim()
     for _, g in ipairs(pg:GetDescendants()) do
-        if g:IsA("TextButton") or g:IsA("ImageButton") then
-            local t = ""
-            pcall(function() t = string.lower(tostring(g.Text or "")) end)
-            local n = string.lower(tostring(g.Name or ""))
-            if t == "claim" or t:find("claim") or n:find("claim")
-                or t == "open" or t == "ok" or t == "continue" then
-                local vis = false
-                pcall(function() vis = g.Visible and g.AbsoluteSize.X > 5 end)
-                if vis then clickGuiButton(g) end
+        if g:IsA("TextButton") then
+            local t = string.lower(g.Text or "")
+            if (t == "claim" or t == "ok" or t == "continue") and g.Visible then
+                pcall(function()
+                    if getconnections then
+                        for _, c in ipairs(getconnections(g.MouseButton1Click) or {}) do
+                            pcall(function() c:Fire() end)
+                        end
+                        for _, c in ipairs(getconnections(g.Activated) or {}) do
+                            pcall(function() c:Fire() end)
+                        end
+                    end
+                    firesignal(g.MouseButton1Click)
+                end)
             end
         end
     end
 end
 
--- GUI
 local gui = Instance.new("ScreenGui")
 gui.Name = "MM2HalloweenUnbox"
 gui.ResetOnSpawn = false
 gui.Parent = pg
 
 local main = Instance.new("Frame")
-main.Size = UDim2.fromOffset(260, 140)
-main.Position = UDim2.new(0.5, -130, 0.18, 0)
+main.Size = UDim2.fromOffset(270, 150)
+main.Position = UDim2.new(0.5, -135, 0.18, 0)
 main.BackgroundColor3 = Color3.fromRGB(25, 12, 5)
 main.Active = true
 main.Draggable = true
@@ -87,10 +78,10 @@ main.Parent = gui
 Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -10, 0, 24)
+title.Size = UDim2.new(1, -10, 0, 22)
 title.Position = UDim2.new(0, 6, 0, 4)
 title.BackgroundTransparency = 1
-title.Text = "Halloween Box Unbox"
+title.Text = "Halloween Unbox v4"
 title.TextColor3 = Color3.fromRGB(255, 160, 60)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 14
@@ -98,21 +89,22 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = main
 
 local status = Instance.new("TextLabel")
-status.Size = UDim2.new(1, -12, 0, 22)
-status.Position = UDim2.new(0, 6, 0, 30)
+status.Size = UDim2.new(1, -12, 0, 40)
+status.Position = UDim2.new(0, 6, 0, 28)
 status.BackgroundTransparency = 1
-status.Text = OpenCrate and "Ready | Opened: 0" or "ERROR: OpenCrate not found"
+status.Text = "Rejoin first if you used SPY\nThen press START"
 status.TextColor3 = Color3.fromRGB(220, 200, 180)
 status.Font = Enum.Font.Gotham
 status.TextSize = 12
 status.TextXAlignment = Enum.TextXAlignment.Left
+status.TextYAlignment = Enum.TextYAlignment.Top
 status.Parent = main
 
 local delayBox = Instance.new("TextBox")
-delayBox.Size = UDim2.new(0.4, -6, 0, 26)
-delayBox.Position = UDim2.new(0, 8, 0, 56)
+delayBox.Size = UDim2.new(0.35, 0, 0, 26)
+delayBox.Position = UDim2.new(0, 8, 0, 72)
 delayBox.BackgroundColor3 = Color3.fromRGB(40, 20, 10)
-delayBox.Text = "0.5"
+delayBox.Text = "1.0"
 delayBox.TextColor3 = Color3.new(1, 1, 1)
 delayBox.Font = Enum.Font.GothamBold
 delayBox.TextSize = 13
@@ -120,12 +112,12 @@ delayBox.Parent = main
 Instance.new("UICorner", delayBox).CornerRadius = UDim.new(0, 5)
 delayBox.FocusLost:Connect(function()
     local n = tonumber(delayBox.Text)
-    if n and n >= 0.2 then DELAY = n else delayBox.Text = tostring(DELAY) end
+    if n and n >= 0.3 then DELAY = n else delayBox.Text = tostring(DELAY) end
 end)
 
 local startBtn = Instance.new("TextButton")
-startBtn.Size = UDim2.new(0.55, -10, 0, 28)
-startBtn.Position = UDim2.new(0.42, 0, 0, 55)
+startBtn.Size = UDim2.new(0.55, -12, 0, 28)
+startBtn.Position = UDim2.new(0.4, 0, 0, 71)
 startBtn.BackgroundColor3 = Color3.fromRGB(40, 120, 50)
 startBtn.Text = "START"
 startBtn.TextColor3 = Color3.new(1, 1, 1)
@@ -136,31 +128,39 @@ Instance.new("UICorner", startBtn).CornerRadius = UDim.new(0, 6)
 
 startBtn.MouseButton1Click:Connect(function()
     running = not running
-    if running then
-        startBtn.Text = "STOP"
-        startBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 40)
-    else
-        startBtn.Text = "START"
-        startBtn.BackgroundColor3 = Color3.fromRGB(40, 120, 50)
-    end
-    status.Text = (running and "Running" or "Stopped") .. " | Opened: " .. opened
+    startBtn.Text = running and "STOP" or "START"
+    startBtn.BackgroundColor3 = running and Color3.fromRGB(160, 40, 40) or Color3.fromRGB(40, 120, 50)
+end)
+
+local onceBtn = Instance.new("TextButton")
+onceBtn.Size = UDim2.new(1, -16, 0, 26)
+onceBtn.Position = UDim2.new(0, 8, 1, -34)
+onceBtn.BackgroundColor3 = Color3.fromRGB(60, 80, 140)
+onceBtn.Text = "Open 1 box now"
+onceBtn.TextColor3 = Color3.new(1, 1, 1)
+onceBtn.Font = Enum.Font.GothamBold
+onceBtn.TextSize = 12
+onceBtn.Parent = main
+Instance.new("UICorner", onceBtn).CornerRadius = UDim.new(0, 6)
+onceBtn.MouseButton1Click:Connect(function()
+    if openBox() then opened = opened + 1 end
+    task.wait(0.3)
+    autoClaim()
+    status.Text = "Opened: " .. opened .. "\n" .. lastResult
 end)
 
 task.spawn(function()
     while true do
         if running then
-            if openBox() then
-                opened = opened + 1
-            end
-            task.wait(0.2)
+            if openBox() then opened = opened + 1 end
+            task.wait(0.25)
             autoClaim()
-            status.Text = "Running | Opened: " .. opened
+            status.Text = "Running | " .. opened .. "\n" .. lastResult
             task.wait(DELAY)
         else
-            autoClaim()
             task.wait(0.3)
         end
     end
 end)
 
-print("[Unbox] OpenCrate =", OpenCrate and OpenCrate:GetFullName() or "nil")
+print("[Unbox v4] clean - no hooks. Rejoin if SPY was used before.")
