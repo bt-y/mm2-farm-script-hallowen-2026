@@ -1,102 +1,155 @@
--- MM2 Halloween Box Auto Unbox (separate script)
--- Opens the 2026 Halloween Box (~600 Candies / 1 Key) on a timer
--- Default delay: 0.5s
+-- MM2 Halloween Box Auto Unbox v2
+-- 1) Press SPY then open ONE box manually -> captures the real remote
+-- 2) Press START to repeat that call every Delay seconds
+-- Also auto-clicks Claim / Open buttons
 
 local Players = game:GetService("Players")
 local RPS = game:GetService("ReplicatedStorage")
+local VIM = game:GetService("VirtualInputManager")
 local lp = Players.LocalPlayer
 local pg = lp:WaitForChild("PlayerGui")
 
 local DELAY = 0.5
 local running = false
 local opened = 0
+local spyOn = false
 
--- Possible internal box names (game may use any of these)
-local BOX_NAMES = {
-    "Halloween Box 2026",
-    "2026 Halloween Box",
-    "HalloweenBox2026",
-    "Halloween_Box_2026",
-    "HalloweenBox",
-    "Halloween Box",
-    "Box2026",
-    "Ember Box",
-    "EmberBox",
+local captured = {
+    remote = nil,
+    args = nil,
+    method = "FireServer",
 }
 
-local function findRemotes()
-    local list = {}
+local function deepCopy(t)
+    if type(t) ~= "table" then return t end
+    local n = {}
+    for k, v in pairs(t) do n[k] = deepCopy(v) end
+    return n
+end
+
+local function startSpy()
+    if spyOn then return end
+    spyOn = true
+
+    if hookmetamethod and getnamecallmethod then
+        local oldNamecall
+        oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+            local method = getnamecallmethod()
+            local args = {...}
+            if spyOn and (method == "FireServer" or method == "InvokeServer") then
+                local path = ""
+                pcall(function() path = self:GetFullName() end)
+                local n = string.lower(tostring(self.Name or "") .. " " .. path)
+                if n:find("box") or n:find("unbox") or n:find("shop") or n:find("buy")
+                    or n:find("open") or n:find("crate") or n:find("case")
+                    or n:find("purchase") or n:find("event") or n:find("halloween")
+                    or n:find("candy") or n:find("reward") or n:find("remote") then
+                    captured.remote = self
+                    captured.args = deepCopy(args)
+                    captured.method = method
+                    print("[Unbox SPY]", method, path)
+                    for i, a in ipairs(args) do
+                        print("  arg"..i..":", typeof(a), a)
+                    end
+                end
+            end
+            return oldNamecall(self, ...)
+        end)
+        print("[Unbox] Spy hooked via metamethod")
+        return
+    end
+
     for _, v in ipairs(RPS:GetDescendants()) do
-        if v:IsA("RemoteEvent") or v:IsA("RemoteFunction") then
-            local n = string.lower(v.Name)
-            if n:find("box") or n:find("unbox") or n:find("open")
-                or n:find("shop") or n:find("buy") or n:find("crate")
-                or n:find("case") or n:find("purchase") then
-                table.insert(list, v)
+        if v:IsA("RemoteEvent") then
+            local old = v.FireServer
+            v.FireServer = function(self, ...)
+                local args = {...}
+                if spyOn then
+                    captured.remote = self
+                    captured.args = deepCopy(args)
+                    captured.method = "FireServer"
+                    print("[Unbox SPY] FireServer", self:GetFullName())
+                    for i, a in ipairs(args) do print("  arg"..i, a) end
+                end
+                return old(self, ...)
+            end
+        elseif v:IsA("RemoteFunction") then
+            local old = v.InvokeServer
+            v.InvokeServer = function(self, ...)
+                local args = {...}
+                if spyOn then
+                    captured.remote = self
+                    captured.args = deepCopy(args)
+                    captured.method = "InvokeServer"
+                    print("[Unbox SPY] InvokeServer", self:GetFullName())
+                    for i, a in ipairs(args) do print("  arg"..i, a) end
+                end
+                return old(self, ...)
             end
         end
     end
-    return list
+    print("[Unbox] Spy hooked via remote wrap")
 end
 
-local function tryOpen(remote, boxName)
-    if not remote then return false end
-    local ok = false
-    -- Common MM2-style argument patterns
-    local patterns = {
-        function() remote:FireServer(boxName) end,
-        function() remote:FireServer("Buy", boxName) end,
-        function() remote:FireServer("Unbox", boxName) end,
-        function() remote:FireServer("Open", boxName) end,
-        function() remote:FireServer("Purchase", boxName) end,
-        function() remote:FireServer(boxName, "Candies") end,
-        function() remote:FireServer(boxName, 1) end,
-        function() remote:FireServer({Box = boxName}) end,
-        function() remote:FireServer({Name = boxName}) end,
-        function() remote:FireServer("Halloween") end,
-        function() remote:InvokeServer(boxName) end,
-        function() remote:InvokeServer("Buy", boxName) end,
-        function() remote:InvokeServer("Unbox", boxName) end,
-    }
-    for _, fn in ipairs(patterns) do
-        local success = pcall(fn)
-        if success then ok = true end
-    end
+local function fireCaptured()
+    if not captured.remote or not captured.args then return false end
+    local ok = pcall(function()
+        if captured.method == "InvokeServer" then
+            captured.remote:InvokeServer(table.unpack(captured.args))
+        else
+            captured.remote:FireServer(table.unpack(captured.args))
+        end
+    end)
     return ok
 end
 
-local function doUnbox()
-    local remotes = findRemotes()
-    for _, boxName in ipairs(BOX_NAMES) do
-        for _, r in ipairs(remotes) do
-            tryOpen(r, boxName)
-        end
-    end
-    -- Also try direct known paths if they exist
+local function clickGuiButton(btn)
+    if not btn or not btn:IsA("GuiButton") then return end
     pcall(function()
-        local shop = RPS:FindFirstChild("Shop") or RPS:FindFirstChild("Remotes")
-        if shop then
-            local buy = shop:FindFirstChild("Buy") or shop:FindFirstChild("Purchase")
-                or shop:FindFirstChild("Unbox") or shop:FindFirstChild("OpenBox")
-            if buy then
-                for _, boxName in ipairs(BOX_NAMES) do
-                    tryOpen(buy, boxName)
+        if getconnections then
+            for _, evName in ipairs({"Activated", "MouseButton1Click", "MouseButton1Down"}) do
+                local ok, conns = pcall(function() return getconnections(btn[evName]) end)
+                if ok and conns then
+                    for _, c in ipairs(conns) do
+                        pcall(function() c:Fire() end)
+                    end
                 end
             end
         end
+        local abs = btn.AbsolutePosition
+        local size = btn.AbsoluteSize
+        local x = abs.X + size.X / 2
+        local y = abs.Y + size.Y / 2
+        VIM:SendMouseButtonEvent(x, y, 0, true, game, 0)
+        task.wait(0.02)
+        VIM:SendMouseButtonEvent(x, y, 0, false, game, 0)
     end)
-    opened = opened + 1
 end
 
--- ==================== GUI ====================
+local function autoClickShopButtons()
+    for _, g in ipairs(pg:GetDescendants()) do
+        if g:IsA("TextButton") or g:IsA("ImageButton") then
+            local t = string.lower(tostring(g.Text or ""))
+            local n = string.lower(tostring(g.Name or ""))
+            if t == "claim" or t == "open" or t == "unbox" or t == "buy"
+                or t:find("claim") or t:find("unbox") or t:find("open")
+                or n:find("claim") or n:find("unbox") or n:find("open") then
+                if g.Visible and g.AbsoluteSize.X > 5 then
+                    clickGuiButton(g)
+                end
+            end
+        end
+    end
+end
+
 local gui = Instance.new("ScreenGui")
 gui.Name = "MM2HalloweenUnbox"
 gui.ResetOnSpawn = false
 gui.Parent = pg
 
 local main = Instance.new("Frame")
-main.Size = UDim2.fromOffset(260, 150)
-main.Position = UDim2.new(0.5, -130, 0.2, 0)
+main.Size = UDim2.fromOffset(280, 200)
+main.Position = UDim2.new(0.5, -140, 0.15, 0)
 main.BackgroundColor3 = Color3.fromRGB(25, 12, 5)
 main.Active = true
 main.Draggable = true
@@ -104,10 +157,10 @@ main.Parent = gui
 Instance.new("UICorner", main).CornerRadius = UDim.new(0, 10)
 
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -10, 0, 28)
-title.Position = UDim2.new(0, 5, 0, 4)
+title.Size = UDim2.new(1, -10, 0, 26)
+title.Position = UDim2.new(0, 6, 0, 4)
 title.BackgroundTransparency = 1
-title.Text = "Halloween Box Unbox"
+title.Text = "Halloween Box Unbox v2"
 title.TextColor3 = Color3.fromRGB(255, 160, 60)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 15
@@ -115,32 +168,22 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = main
 
 local status = Instance.new("TextLabel")
-status.Size = UDim2.new(1, -12, 0, 20)
-status.Position = UDim2.new(0, 6, 0, 34)
+status.Size = UDim2.new(1, -12, 0, 36)
+status.Position = UDim2.new(0, 6, 0, 30)
 status.BackgroundTransparency = 1
-status.Text = "Stopped | Opened: 0"
+status.Text = "1) Press SPY\n2) Open 1 box manually\n3) Press START"
 status.TextColor3 = Color3.fromRGB(220, 200, 180)
 status.Font = Enum.Font.Gotham
 status.TextSize = 12
 status.TextXAlignment = Enum.TextXAlignment.Left
+status.TextYAlignment = Enum.TextYAlignment.Top
 status.Parent = main
 
-local delayLbl = Instance.new("TextLabel")
-delayLbl.Size = UDim2.new(0.4, 0, 0, 18)
-delayLbl.Position = UDim2.new(0, 6, 0, 58)
-delayLbl.BackgroundTransparency = 1
-delayLbl.Text = "Delay (s):"
-delayLbl.TextColor3 = Color3.fromRGB(200, 180, 150)
-delayLbl.Font = Enum.Font.Gotham
-delayLbl.TextSize = 12
-delayLbl.TextXAlignment = Enum.TextXAlignment.Left
-delayLbl.Parent = main
-
 local delayBox = Instance.new("TextBox")
-delayBox.Size = UDim2.new(0.5, -10, 0, 24)
-delayBox.Position = UDim2.new(0.4, 0, 0, 55)
+delayBox.Size = UDim2.new(0.45, -8, 0, 26)
+delayBox.Position = UDim2.new(0, 8, 0, 72)
 delayBox.BackgroundColor3 = Color3.fromRGB(40, 20, 10)
-delayBox.Text = tostring(DELAY)
+delayBox.Text = "0.5"
 delayBox.TextColor3 = Color3.new(1, 1, 1)
 delayBox.Font = Enum.Font.GothamBold
 delayBox.TextSize = 13
@@ -148,34 +191,51 @@ delayBox.Parent = main
 Instance.new("UICorner", delayBox).CornerRadius = UDim.new(0, 5)
 delayBox.FocusLost:Connect(function()
     local n = tonumber(delayBox.Text)
-    if n and n >= 0.1 then
-        DELAY = n
-        delayBox.Text = tostring(DELAY)
-    else
-        delayBox.Text = tostring(DELAY)
-    end
+    if n and n >= 0.15 then DELAY = n else delayBox.Text = tostring(DELAY) end
 end)
 
-local btn = Instance.new("TextButton")
-btn.Size = UDim2.new(1, -16, 0, 36)
-btn.Position = UDim2.new(0, 8, 1, -46)
-btn.BackgroundColor3 = Color3.fromRGB(40, 120, 50)
-btn.Text = "START"
-btn.TextColor3 = Color3.new(1, 1, 1)
-btn.Font = Enum.Font.GothamBold
-btn.TextSize = 14
-btn.Parent = main
-Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+local spyBtn = Instance.new("TextButton")
+spyBtn.Size = UDim2.new(0.5, -10, 0, 30)
+spyBtn.Position = UDim2.new(0.5, 2, 0, 70)
+spyBtn.BackgroundColor3 = Color3.fromRGB(80, 60, 140)
+spyBtn.Text = "SPY"
+spyBtn.TextColor3 = Color3.new(1, 1, 1)
+spyBtn.Font = Enum.Font.GothamBold
+spyBtn.TextSize = 13
+spyBtn.Parent = main
+Instance.new("UICorner", spyBtn).CornerRadius = UDim.new(0, 6)
 
-btn.MouseButton1Click:Connect(function()
+spyBtn.MouseButton1Click:Connect(function()
+    startSpy()
+    spyBtn.Text = "SPY ON"
+    spyBtn.BackgroundColor3 = Color3.fromRGB(120, 40, 160)
+    status.Text = "SPY ON - open 1 box manually now"
+end)
+
+local startBtn = Instance.new("TextButton")
+startBtn.Size = UDim2.new(1, -16, 0, 36)
+startBtn.Position = UDim2.new(0, 8, 1, -48)
+startBtn.BackgroundColor3 = Color3.fromRGB(40, 120, 50)
+startBtn.Text = "START"
+startBtn.TextColor3 = Color3.new(1, 1, 1)
+startBtn.Font = Enum.Font.GothamBold
+startBtn.TextSize = 14
+startBtn.Parent = main
+Instance.new("UICorner", startBtn).CornerRadius = UDim.new(0, 6)
+
+startBtn.MouseButton1Click:Connect(function()
+    if not captured.remote then
+        status.Text = "No remote captured!\nPress SPY then open 1 box first"
+        return
+    end
     running = not running
     if running then
-        btn.Text = "STOP"
-        btn.BackgroundColor3 = Color3.fromRGB(160, 40, 40)
+        startBtn.Text = "STOP"
+        startBtn.BackgroundColor3 = Color3.fromRGB(160, 40, 40)
         status.Text = "Running | Opened: " .. opened
     else
-        btn.Text = "START"
-        btn.BackgroundColor3 = Color3.fromRGB(40, 120, 50)
+        startBtn.Text = "START"
+        startBtn.BackgroundColor3 = Color3.fromRGB(40, 120, 50)
         status.Text = "Stopped | Opened: " .. opened
     end
 end)
@@ -183,11 +243,22 @@ end)
 task.spawn(function()
     while true do
         if running then
-            pcall(doUnbox)
-            status.Text = "Running | Opened: " .. opened
+            if fireCaptured() then
+                opened = opened + 1
+            end
+            task.wait(0.15)
+            autoClickShopButtons()
+            local msg = "Running | Opened: " .. opened
+            if captured.remote then
+                msg = msg .. "\nRemote: " .. tostring(captured.remote.Name)
+            end
+            status.Text = msg
             task.wait(DELAY)
         else
-            task.wait(0.2)
+            autoClickShopButtons()
+            task.wait(0.25)
         end
     end
 end)
+
+print("[Unbox] Loaded. SPY -> open 1 box manually -> START")
